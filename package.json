@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
   "main": "index.js",
   "keywords": [
@@ -16,5 +16,9 @@
   "dependencies": {
     "request": "^2.60.0",
     "iced-runtime": "^1.0.2"
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/stampery/node.git"
   }
 }
