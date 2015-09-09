@@ -19,7 +19,7 @@ var Stampery = require('stampery')
 // 'beta' for testing, leave it blank for production
 var stampery = new Stampery('55b6a36e87d90b030074d308', 'beta')
 
-stampery.stamp('example0.txt', new Buffer('hey there'), function(err, fileHash) { })
+stampery.stamp('example.txt', new Buffer('stamp this'), function(err, fileHash) { })
 stampery.get(hash, function(err, stamp) { })
 stampery.proof(hash, function(err, proof) { })
 ```
