@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
   "main": "index.js",
   "keywords": [
@@ -14,6 +14,7 @@
   "author": "Luis Iván Cuende <luis@stampery.co>",
   "license": "MIT",
   "dependencies": {
-    "request": "^2.60.0"
+    "request": "^2.60.0",
+    "iced-runtime": "^1.0.2"
   }
 }
