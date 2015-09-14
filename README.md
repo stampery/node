@@ -20,7 +20,7 @@ var Stampery = require('stampery')
 var stampery = new Stampery('55b6a36e87d90b030074d308', 'beta')
 
 var data = new Buffer('Create a proof of this using the blockchain')
-stampery.stamp('test.txt', data, function(err, fileHash) { })
+stampery.stamp('test.txt', data, {someother: 'extradata'}, function(err, fileHash) { })
 stampery.get(hash, function(err, stamp) { })
 stampery.proof(hash, function(err, proof) { })
 ```

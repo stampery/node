@@ -29,14 +29,13 @@
       return hash.digest('hex');
     };
 
-    Stampery.prototype.stamp = function(fileName, fileHash, cb) {
+    Stampery.prototype.stamp = function(fileName, fileHash, extra, cb) {
       var data, err, formData, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       formData = {
-        sig: '',
-        pendingSignatures: JSON.stringify([]),
-        fileName: fileName
+        fileName: fileName,
+        extra: JSON.stringify(extra)
       };
       if (typeof fileHash !== 'string') {
         data = fileHash;
@@ -70,7 +69,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 38
+            lineno: 37
           }));
           __iced_deferrals._fulfill();
         });
@@ -101,7 +100,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 43
+            lineno: 42
           }));
           __iced_deferrals._fulfill();
         });
@@ -131,7 +130,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 47
+            lineno: 46
           }));
           __iced_deferrals._fulfill();
         });

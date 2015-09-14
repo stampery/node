@@ -13,11 +13,10 @@ class Stampery
     hash.update data
     return hash.digest 'hex'
 
-  stamp : (fileName, fileHash, cb) ->
+  stamp : (fileName, fileHash, extra, cb) ->
     formData =
-      sig: ''
-      pendingSignatures: JSON.stringify []
       fileName: fileName
+      extra: JSON.stringify extra
 
     if typeof fileHash isnt 'string'
       data = fileHash
