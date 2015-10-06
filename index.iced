@@ -4,7 +4,7 @@ request = require 'request'
 class Stampery
   constructor : (@api_key, @beta) ->
     @req = request.defaults
-      baseUrl: if not @beta then 'https://stampery.co/api/v1' else 'https://beta.stampery.co/api/v1'
+      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v1' else 'https://beta.stampery.co/api/v1'
       json: true
       headers: {'x-user-token': @api_key}
 
@@ -32,8 +32,7 @@ class Stampery
       formData.fileSize = 0
 
     await @req.post
-      baseUrl: 'https://stampery.herokuapp.com/api/v1' if not @beta
-      url: '/stamp'
+      uri: '/stamp'
       formData: formData
     , defer err, res
     err = if err then err else res.body?.err
