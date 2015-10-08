@@ -14,7 +14,7 @@
       this.api_key = api_key;
       this.beta = beta;
       this.req = request.defaults({
-        baseUrl: !this.beta ? 'https://stampery.co/api/v1' : 'https://beta.stampery.co/api/v1',
+        baseUrl: !this.beta ? 'https://stampery.herokuapp.com/api/v1' : 'https://beta.stampery.co/api/v1',
         json: true,
         headers: {
           'x-user-token': this.api_key
@@ -57,10 +57,8 @@
             filename: "/home/li/dev/stampery-node/index.iced",
             funcname: "Stampery.stamp"
           });
-          _this.req.post(!_this.beta ? {
-            baseUrl: 'https://stampery.herokuapp.com/api/v1'
-          } : void 0, {
-            url: '/stamp',
+          _this.req.post({
+            uri: '/stamp',
             formData: formData
           }, __iced_deferrals.defer({
             assign_fn: (function() {
@@ -69,7 +67,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 37
+            lineno: 36
           }));
           __iced_deferrals._fulfill();
         });
@@ -100,7 +98,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 42
+            lineno: 41
           }));
           __iced_deferrals._fulfill();
         });
@@ -130,7 +128,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 46
+            lineno: 45
           }));
           __iced_deferrals._fulfill();
         });
