@@ -2,18 +2,34 @@ crypto = require 'crypto'
 request = require 'request'
 
 class Stampery
-  constructor : (@api_key, @beta) ->
+  constructor : (@apiSecret, @beta) ->
+    md5 = crypto.createHash 'md5'
+    md5.update @apiSecret
+    md5 = md5.digest 'hex'
+
+    @clientId = md5.substring 0, 15
+    auth = new Buffer("#{@clientId}:#{@apiSecret}").toString 'base64'
+
     @req = request.defaults
-      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v1' else 'https://beta.stampery.co/api/v1'
+      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v2' else 'https://beta.stampery.co/api/v2'
       json: true
-      headers: {'x-user-token': @api_key}
+      headers: {'Authorization': auth}
 
   hash : (data) ->
     hash = crypto.createHash 'sha256'
     hash.update data
     return hash.digest 'hex'
 
-  stamp : (fileName, fileHash, extra, cb) ->
+  stamp : (data, cb) -> @_stampJSON data, cb
+
+  _stampJSON : (data, cb) ->
+    await @req.post
+      uri: '/stamps'
+      json: data
+    , defer err, res, body
+    cb err, res.body?.hash
+
+  ###_stampFile : (fileName, fileHash, extra, cb) ->
     formData =
       fileName: fileName
       extra: JSON.stringify extra
@@ -32,22 +48,14 @@ class Stampery
       formData.fileSize = 0
 
     await @req.post
-      uri: '/stamp'
+      uri: '/stamps'
       formData: formData
     , defer err, res
     err = if err then err else res.body?.err
-    cb err, res.body?.fileHash
+    cb err, res.body?.fileHash###
 
-  get : (id, cb) ->
-    await @req.get "/stamp/#{id}", defer err, res
+  get : (hash, cb) ->
+    await @req.get "/stamps/#{hash}", defer err, res
     cb err, res.body?.stamp
-
-  proof : (id, cb) ->
-    await @req.get "/stamp/#{id}/proof", defer err, res
-    cb err, res.body?.proof
-
-  #searchUsers : (q, cb) ->
-  #  await @req.get {url: '/users', qs: {q}}, defer err, res
-  #  cb err, res.body?.users
 
 module.exports = Stampery

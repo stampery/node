@@ -14,18 +14,16 @@ npm install stampery
 Using it in Node:
 
 ```javascript
-var Stampery = require('stampery')
+var Stampery = require('stampery'),
+    stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
 
-// 'beta' for testing, remove the argument for production
-var stampery = new Stampery('55b6a36e87d90b030074d308', 'beta')
+var data = { str: 'Create a proof of this using the blockchain' }
 
-var data = new Buffer('Create a proof of this using the blockchain')
-stampery.stamp('test.txt', data, {someother: 'extradata'}, function(err, fileHash) { })
+stampery.stamp(data, function(err, hash) { })
 stampery.get(hash, function(err, stamp) { })
-stampery.proof(hash, function(err, proof) { })
 ```
 
-You can get your API key [signing up](https://stampery.co/signup) and going to [your account](https://stampery.co/account).
+You can get your API key [signing up](https://stampery.co/signup) and going to [your account](https://stampery.co/account) -> Apps.
 
 ## License
 
