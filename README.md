@@ -11,12 +11,13 @@ Notarize all your data using the blockchain. Generate immutable and valid global
 npm install stampery
 ```
 
-### Arbitrary object stamping
-
 ```javascript
 var Stampery = require('stampery'),
     stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
+```
 
+### Arbitrary object stamping
+```javascript
 var data = { str: 'Create a proof of this using the blockchain' }
 
 stampery.stamp(data, function(err, hash) { })
@@ -24,24 +25,20 @@ stampery.get(hash, function(err, stamp) { })
 ```
 ### Buffer/string stamping
 ```javascript
-var Stampery = require('stampery'),
-    stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
-
 var data = {}
 var file = new Buffer('Create a proof of this using the blockchain')
 
 stampery.stamp(data, file, 'Name or ID of the buffer', function(err, hash) { })
-stampery.get(hash, function(err, stamp) { })
 ```
 ### File/stream stamping
 ```javascript
-var Stampery = require('stampery'),
-    stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
-
 var data = {}
 var file = fs.createReadStream('document.txt')
 
 stampery.stamp(data, file, function(err, hash) { })
+```
+### Getting a stamp
+```javascript
 stampery.get(hash, function(err, stamp) { })
 ```
 
