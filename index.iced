@@ -1,5 +1,6 @@
 crypto = require 'crypto'
 request = require 'request'
+stream = require 'stream'
 
 class Stampery
   constructor : (@apiSecret, @beta) ->
@@ -20,12 +21,9 @@ class Stampery
     hash.update data
     hash.digest 'hex'
 
-  stamp : (data, file, name, cb) ->
-    if file and name
-      @_stampFile data, file, name, cb
-    else if name instanceof stream
-      name = file.path.split('/').slice(-1)[0]
-      @_stampFile data, file, name, cb
+  stamp : (data, file, cb) ->
+    if file? and cb?
+      @_stampFile data, file, cb
     else
       @_stampJSON data, file
 
@@ -36,13 +34,15 @@ class Stampery
     , defer err, res, body
     cb err, res.body?.hash
 
-  _stampFile : (data = {}, file, name, cb) ->
+  _stampFile : (data = {}, file, cb) ->
     formData = {data}
+    if file instanceof stream
+      file.path? and formData.data.name = file.path.split('/').slice(-1)[0]
 
     formData.file =
       value: file
       options:
-        filename: name
+        filename: formData.data.name
 
     formData.data = JSON.stringify formData.data
 
