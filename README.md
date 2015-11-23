@@ -11,7 +11,7 @@ Notarize all your data using the blockchain. Generate immutable and valid global
 npm install stampery
 ```
 
-Using it in Node:
+### Arbitrary object stamping
 
 ```javascript
 var Stampery = require('stampery'),
@@ -22,8 +22,30 @@ var data = { str: 'Create a proof of this using the blockchain' }
 stampery.stamp(data, function(err, hash) { })
 stampery.get(hash, function(err, stamp) { })
 ```
+### Buffer/string stamping
+```javascript
+var Stampery = require('stampery'),
+    stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
 
-You can get your API key [signing up](https://stampery.co/signup) and going to [your account](https://stampery.co/account) -> Apps.
+var data = {}
+var file = new Buffer('Create a proof of this using the blockchain')
+
+stampery.stamp(data, file, 'Name or ID of the buffer', function(err, hash) { })
+stampery.get(hash, function(err, stamp) { })
+```
+### File/stream stamping
+```javascript
+var Stampery = require('stampery'),
+    stampery = new Stampery('830fa1bf-bee7-4412-c1d3-31dddba2213d')
+
+var data = {}
+var file = fs.createReadStream('document.txt')
+
+stampery.stamp(data, file, function(err, hash) { })
+stampery.get(hash, function(err, stamp) { })
+```
+
+You can get your API key [signing up](https://stampery.com/signup) and going to [your account](https://stampery.com/account) -> Apps.
 
 ## License
 
