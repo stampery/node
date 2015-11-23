@@ -11,16 +11,20 @@ class Stampery
     auth = new Buffer("#{@clientId}:#{@apiSecret}").toString 'base64'
 
     @req = request.defaults
-      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v2' else 'https://beta.stampery.co/api/v2'
+      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v2' else 'https://stampery-beta.herokuapp.com/api/v2'
       json: true
       headers: {'Authorization': auth}
 
   hash : (data) ->
     hash = crypto.createHash 'sha256'
     hash.update data
-    return hash.digest 'hex'
+    hash.digest 'hex'
 
-  stamp : (data, cb) -> @_stampJSON data, cb
+  stamp : (data, name, file, cb) ->
+    if name and file
+      @_stampFile data, name, file, cb
+    else
+      @_stampJSON data, name
 
   _stampJSON : (data, cb) ->
     await @req.post
@@ -29,30 +33,22 @@ class Stampery
     , defer err, res, body
     cb err, res.body?.hash
 
-  ###_stampFile : (fileName, fileHash, extra, cb) ->
-    formData =
-      fileName: fileName
-      extra: JSON.stringify extra
+  _stampFile : (data = {}, name, file, cb) ->
+    formData = {data}
 
-    if typeof fileHash isnt 'string'
-      data = fileHash
+    formData.file =
+      value: file
+      options:
+        filename: name
 
-      formData.fileHash = @hash data
-      formData.file =
-        value: data
-        options:
-          filename: fileName
-
-    else
-      formData.fileHash = fileHash
-      formData.fileSize = 0
+    formData.data = JSON.stringify formData.data
+    console.log formData
 
     await @req.post
       uri: '/stamps'
       formData: formData
-    , defer err, res
-    err = if err then err else res.body?.err
-    cb err, res.body?.fileHash###
+    , defer err, res, body
+    cb err, res.body?.hash
 
   get : (hash, cb) ->
     await @req.get "/stamps/#{hash}", defer err, res
