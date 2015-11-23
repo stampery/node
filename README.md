@@ -21,7 +21,6 @@ var Stampery = require('stampery'),
 var data = { str: 'Create a proof of this using the blockchain' }
 
 stampery.stamp(data, function(err, hash) { })
-stampery.get(hash, function(err, stamp) { })
 ```
 ### Buffer/string stamping
 ```javascript
