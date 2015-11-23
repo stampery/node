@@ -20,11 +20,14 @@ class Stampery
     hash.update data
     hash.digest 'hex'
 
-  stamp : (data, name, file, cb) ->
-    if name and file
-      @_stampFile data, name, file, cb
+  stamp : (data, file, name, cb) ->
+    if file and name
+      @_stampFile data, file, name, cb
+    else if name instanceof stream
+      name = file.path.split('/').slice(-1)[0]
+      @_stampFile data, file, name, cb
     else
-      @_stampJSON data, name
+      @_stampJSON data, file
 
   _stampJSON : (data, cb) ->
     await @req.post
@@ -33,7 +36,7 @@ class Stampery
     , defer err, res, body
     cb err, res.body?.hash
 
-  _stampFile : (data = {}, name, file, cb) ->
+  _stampFile : (data = {}, file, name, cb) ->
     formData = {data}
 
     formData.file =
@@ -42,7 +45,6 @@ class Stampery
         filename: name
 
     formData.data = JSON.stringify formData.data
-    console.log formData
 
     await @req.post
       uri: '/stamps'

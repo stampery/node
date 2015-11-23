@@ -35,11 +35,14 @@
       return hash.digest('hex');
     };
 
-    Stampery.prototype.stamp = function(data, name, file, cb) {
-      if (name && file) {
-        return this._stampFile(data, name, file, cb);
+    Stampery.prototype.stamp = function(data, file, name, cb) {
+      if (file && name) {
+        return this._stampFile(data, file, name, cb);
+      } else if (name instanceof stream) {
+        name = file.path.split('/').slice(-1)[0];
+        return this._stampFile(data, file, name, cb);
       } else {
-        return this._stampJSON(data, name);
+        return this._stampJSON(data, file);
       }
     };
 
@@ -65,7 +68,7 @@
                 return body = arguments[2];
               };
             })(),
-            lineno: 32
+            lineno: 35
           }));
           __iced_deferrals._fulfill();
         });
@@ -77,7 +80,7 @@
       })(this));
     };
 
-    Stampery.prototype._stampFile = function(data, name, file, cb) {
+    Stampery.prototype._stampFile = function(data, file, name, cb) {
       var body, err, formData, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
@@ -94,7 +97,6 @@
         }
       };
       formData.data = JSON.stringify(formData.data);
-      console.log(formData);
       (function(_this) {
         return (function(__iced_k) {
           __iced_deferrals = new iced.Deferrals(__iced_k, {
@@ -113,7 +115,7 @@
                 return body = arguments[2];
               };
             })(),
-            lineno: 49
+            lineno: 51
           }));
           __iced_deferrals._fulfill();
         });
@@ -143,7 +145,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 53
+            lineno: 55
           }));
           __iced_deferrals._fulfill();
         });
