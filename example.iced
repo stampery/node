@@ -16,7 +16,7 @@ console.log 'Stamp', stamp
 
 console.log 'Stamping a buffer...'
 
-await stampery.stamp {key: 'value'}, 'Random buffer', new Buffer(randomData()), defer err, hash
+await stampery.stamp {name: 'Name to give to the buffer'}, new Buffer(randomData()), defer err, hash
 console.log 'Stamped', hash
 
 await stampery.get hash, defer err, stamp
@@ -24,7 +24,7 @@ console.log 'Stamp', stamp
 
 console.log 'Stamping a file...'
 
-await stampery.stamp {key: 'value'}, 'Random file', fs.createReadStream('README.md'), defer err, hash
+await stampery.stamp {key: 'value'}, fs.createReadStream('README.md'), defer err, hash
 console.log 'Stamped', hash
 
 await stampery.get hash, defer err, stamp

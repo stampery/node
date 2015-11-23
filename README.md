@@ -24,10 +24,10 @@ stampery.stamp(data, function(err, hash) { })
 ```
 ### Buffer/string stamping
 ```javascript
-var data = {}
+var data = { name: 'Name or ID of the buffer' }
 var file = new Buffer('Create a proof of this using the blockchain')
 
-stampery.stamp(data, file, 'Name or ID of the buffer', function(err, hash) { })
+stampery.stamp(data, file, function(err, hash) { })
 ```
 ### File/stream stamping
 ```javascript
