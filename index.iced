@@ -54,6 +54,6 @@ class Stampery
 
   get : (hash, cb) ->
     await @req.get "/stamps/#{hash}", defer err, res
-    cb err, res.body?.stamp
+    cb err, res.body
 
 module.exports = Stampery
