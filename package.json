@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
   "main": "index.js",
   "keywords": [
