@@ -18,11 +18,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "iced-runtime": "^1.0.2",
     "request": "^2.60.0",
-    "iced-runtime": "^1.0.2"
+    "retry": "^0.8.0"
   },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/stampery/node.git"
+    "type": "git",
+    "url": "https://github.com/stampery/node.git"
   }
 }

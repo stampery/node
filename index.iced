@@ -1,6 +1,7 @@
 crypto = require 'crypto'
 request = require 'request'
 stream = require 'stream'
+retry = require 'retry'
 
 class Stampery
   constructor : (@apiSecret, @beta) ->
@@ -12,7 +13,7 @@ class Stampery
     auth = new Buffer("#{@clientId}:#{@apiSecret}").toString 'base64'
 
     @req = request.defaults
-      baseUrl: if not @beta then 'https://stampery.herokuapp.com/api/v2' else 'https://stampery-beta.herokuapp.com/api/v2'
+      baseUrl: if not @beta then 'https://api.stampery.com/v2' else 'https://stampery-api-beta.herokuapp.com/v2'
       json: true
       headers: {'Authorization': auth}
 
@@ -28,29 +29,47 @@ class Stampery
       @_stampJSON data, file
 
   _stampJSON : (data, cb) ->
-    await @req.post
-      uri: '/stamps'
-      json: data
-    , defer err, res, body
-    cb err, res.body?.hash
+    operation = retry.operation({
+      retries: 3
+      minTimeout: 2 * 1000
+      maxTimeout: 2 * 1000
+    })
+    operation.attempt (currentAttempt) =>
+      await @req.post
+        uri: '/stamps'
+        json: data
+      , defer err, res, body
+      if operation.retry(err)
+        return
+
+      cb (if err then operation.mainError() else null), res.body?.hash
 
   _stampFile : (data = {}, file, cb) ->
-    formData = {data}
-    if file instanceof stream
-      file.path? and formData.data.name = file.path.split('/').slice(-1)[0]
+    operation = retry.operation({
+      retries: 3
+      minTimeout: 2 * 1000
+      maxTimeout: 2 * 1000
+    })
+    operation.attempt (currentAttempt) =>
+      formData = {data}
+      if file instanceof stream
+        file.path? and formData.data.name = file.path.split('/').slice(-1)[0]
 
-    formData.file =
-      value: file
-      options:
-        filename: formData.data.name
+      formData.file =
+        value: file
+        options:
+          filename: formData.data.name
 
-    formData.data = JSON.stringify formData.data
+      formData.data = JSON.stringify formData.data
 
-    await @req.post
-      uri: '/stamps'
-      formData: formData
-    , defer err, res, body
-    cb err, res.body?.hash
+      await @req.post
+        uri: '/stamps'
+        formData: formData
+      , defer err, res, body
+      if operation.retry(err)
+        return
+
+      cb (if err then operation.mainError() else null), res.body?.hash
 
   get : (hash, cb) ->
     await @req.get "/stamps/#{hash}", defer err, res
