@@ -18,12 +18,19 @@
   },
   "license": "MIT",
   "dependencies": {
+    "grunt": "^1.0.1",
     "iced-runtime": "^1.0.2",
+    "msgpackrpc": "^1.0.3",
     "request": "^2.60.0",
     "retry": "^0.8.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/stampery/node.git"
+  },
+  "devDependencies": {
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-iced-coffee": "^0.7.0",
+    "iced-coffee-script": "^108.0.11"
   }
 }

@@ -1,78 +1,49 @@
 crypto = require 'crypto'
-request = require 'request'
-stream = require 'stream'
+net = require 'net'
+MsgpackRPC = require 'msgpackrpc'
 retry = require 'retry'
+stream = require 'stream'
 
 class Stampery
   constructor : (@apiSecret, @beta) ->
     md5 = crypto.createHash 'md5'
     md5.update @apiSecret
     md5 = md5.digest 'hex'
-
     @clientId = md5.substring 0, 15
-    auth = new Buffer("#{@clientId}:#{@apiSecret}").toString 'base64'
 
-    @req = request.defaults
-      baseUrl: if not @beta then 'https://api.stampery.com/v2' else 'https://stampery-api-beta.herokuapp.com/v2'
-      json: true
-      headers: {'Authorization': auth}
+    @sock = net.Socket()
+    await @sock.connect 4000, 'localhost', defer err
+    @rpc = new MsgpackRPC 'stampery.3', @sock
+    @authed = false
 
   hash : (data) ->
     hash = crypto.createHash 'sha256'
     hash.update data
     hash.digest 'hex'
 
-  stamp : (data, file, cb) ->
-    if file? and cb?
-      @_stampFile data, file, cb
+  hashFile : (fd, cb) ->
+    hash = crypto.createHash 'sha256'
+    hash.setEncoding 'hex'
+
+    fd.on 'end', () ->
+      hash.end()
+      cb hash.read()
+
+    fd.pipe hash
+
+  stamp : (data, cb) ->
+    dataHash = null
+    if data instanceof stream
+      await @hashFile data, defer hash
+      dataHash = hash
     else
-      @_stampJSON data, file
+      dataHash = @hash data
 
-  _stampJSON : (data, cb) ->
-    operation = retry.operation({
-      retries: 3
-      minTimeout: 2 * 1000
-      maxTimeout: 2 * 1000
-    })
-    operation.attempt (currentAttempt) =>
-      await @req.post
-        uri: '/stamps'
-        json: data
-      , defer err, res, body
-      if operation.retry(err)
-        return
-
-      cb (if err then operation.mainError() else null), res.body?.hash
-
-  _stampFile : (data = {}, file, cb) ->
-    operation = retry.operation({
-      retries: 3
-      minTimeout: 2 * 1000
-      maxTimeout: 2 * 1000
-    })
-    operation.attempt (currentAttempt) =>
-      formData = {data}
-      if file instanceof stream
-        file.path? and formData.data.name = file.path.split('/').slice(-1)[0]
-
-      formData.file =
-        value: file
-        options:
-          filename: formData.data.name
-
-      formData.data = JSON.stringify formData.data
-
-      await @req.post
-        uri: '/stamps'
-        formData: formData
-      , defer err, res, body
-      if operation.retry(err)
-        return
-
-      cb (if err then operation.mainError() else null), res.body?.hash
-
-  get : (hash, cb) ->
-    await @req.get "/stamps/#{hash}", defer err, res
-    cb err, res.body
+    if !@authed
+      await @rpc.invoke 'auth', [@clientId, @apiSecret], defer err, res
+      if err
+        return cb err, null
+    
+    @rpc.invoke 'stamp', [dataHash], cb
 
 module.exports = Stampery
