@@ -22,7 +22,8 @@
     "iced-runtime": "^1.0.2",
     "msgpackrpc": "^1.0.3",
     "request": "^2.60.0",
-    "retry": "^0.8.0"
+    "retry": "^0.8.0",
+    "rocksolidsocket": "^1.0.0"
   },
   "repository": {
     "type": "git",

@@ -3,6 +3,7 @@ net = require 'net'
 MsgpackRPC = require 'msgpackrpc'
 retry = require 'retry'
 stream = require 'stream'
+RockSolidSocket = require 'rocksolidsocket'
 
 class Stampery
   constructor : (@apiSecret, @beta) ->
@@ -11,8 +12,8 @@ class Stampery
     md5 = md5.digest 'hex'
     @clientId = md5.substring 0, 15
 
-    @sock = net.Socket()
-    await @sock.connect 4000, 'localhost', defer err
+    @sock = new RockSolidSocket 'localhost:4000'
+
     @rpc = new MsgpackRPC 'stampery.3', @sock
     @authed = false
 
