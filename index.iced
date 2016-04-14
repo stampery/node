@@ -23,7 +23,7 @@ class Stampery
     if @connected
       cb null, @conn
     else
-      await amqp.connect 'amqp://ukgmnhoi:iP8PxJN_rPTT2lls6CEeKsC93aEnQKgx@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @conn
+      await amqp.connect 'amqp://consumer:9FBln3UxOgwgLZtYvResNXE7@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @conn
 
       if err
         console.log "[QUEUE] Error connecting #{err}"
