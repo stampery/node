@@ -1,47 +1,32 @@
 crypto = require 'crypto'
-net = require 'net'
-MsgpackRPC = require 'msgpackrpc'
-retry = require 'retry'
 stream = require 'stream'
 RockSolidSocket = require 'rocksolidsocket'
+MsgpackRPC = require 'msgpackrpc'
 amqp = require 'amqplib/callback_api'
 
 class Stampery
-  constructor : (@apiSecret, @beta) ->
-    md5 = crypto.createHash 'md5'
-    md5.update @apiSecret
-    md5 = md5.digest 'hex'
-    @clientId = md5.substring 0, 15
+  constructor : (@clientSecret, @beta) ->
+    @clientId = @_hash('md5', @clientSecret).substring 0, 15
 
-    @sock = new RockSolidSocket 'localhost:4000'
+    sock = new RockSolidSocket 'localhost:4000'
+    @rpc = new MsgpackRPC 'stampery.3', sock
+    @_auth()
+    @_connectRabbit()
 
-    @rpc = new MsgpackRPC 'stampery.3', @sock
-    @authed = false
-    @connected = false
+  _connectRabbit : () =>
+    await amqp.connect 'amqp://consumer:9FBln3UxOgwgLZtYvResNXE7@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @rabbit
+    return console.log console.log "[QUEUE] Error connecting #{err}" if err
+    @rabbit.on 'error', @_connectRabbit
 
-  connectToQueue : (cb) ->
-    if @connected
-      cb null, @conn
+  _hash : (algo, data) -> crypto.createHash(algo).update(data).digest 'hex'
+
+  hash : (data, cb) ->
+    if data instanceof stream
+      @_hashFile data, cb
     else
-      await amqp.connect 'amqp://consumer:9FBln3UxOgwgLZtYvResNXE7@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @conn
+      @_hash 'sha256', data
 
-      if err
-        console.log "[QUEUE] Error connecting #{err}"
-        cb err, null
-      else
-        @connected = true
-        cb null, @conn
-
-      @conn.on 'error', (e) ->
-        console.log "[QUEUE] Connection error: #{e}"
-        cb e, null
-    
-  hash : (data) ->
-    hash = crypto.createHash 'sha256'
-    hash.update data
-    hash.digest 'hex'
-
-  hashFile : (fd, cb) ->
+  _hashFile : (fd, cb) ->
     hash = crypto.createHash 'sha256'
     hash.setEncoding 'hex'
 
@@ -51,33 +36,20 @@ class Stampery
 
     fd.pipe hash
 
-  stamp : (data, cb) =>
-    dataHash = null
-    if data instanceof stream
-      await @hashFile data, defer hash
-      dataHash = hash
-    else
-      dataHash = @hash data
+  _auth : () ->
+    await @rpc.invoke 'auth', [@clientId, @clientSecret], defer err, res
+    return console.log "[RPC] Auth error: #{err}" if err
 
-    if !@authed
-      console.log "[RPC] No auth"
-      await @rpc.invoke 'auth', [@clientId, @apiSecret], defer err, res
-      if err
-        return cb err, null
-      else
-        console.log "[RPC] Authed: #{err}, #{res}"
-    
-    await @rpc.invoke 'stamp', [dataHash], defer err, res
-    if err
-      console.log "[RPC] Error: #{err}"
-    @connectToQueue (err, conn) =>
-      if err
-        console.log "[QUEUE] Error connecting to RabbitMQ"
-      else
-        await @conn.createChannel defer err, channel
-        await channel.assertQueue dataHash, {durable: true}, defer err, ok
-        channel.consume dataHash, (msg) ->
-          console.log "[QUEUE] Received -> %s", msg.content.toString()
-          channel.ack msg
+  stamp : (hash, cb) ->
+    return setTimeout @stamp.bind(this, hash, cb), 500 if not @rabbit
+
+    await @rpc.invoke 'stamp', [hash], defer err, res
+    return console.log "[RPC] Error: #{err}" if err
+
+    await @rabbit.createChannel defer err, channel
+    console.log "[QUEUE] Bound to #{hash}-clnt"
+    channel.consume "#{hash}-clnt", (msg) ->
+      console.log "[QUEUE] Received -> %s", msg.content.toString()
+      channel.ack msg
 
 module.exports = Stampery
