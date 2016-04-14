@@ -3,6 +3,8 @@ net = require 'net'
 MsgpackRPC = require 'msgpackrpc'
 retry = require 'retry'
 stream = require 'stream'
+RockSolidSocket = require 'rocksolidsocket'
+amqp = require 'amqplib/callback_api'
 
 class Stampery
   constructor : (@apiSecret, @beta) ->
@@ -11,11 +13,29 @@ class Stampery
     md5 = md5.digest 'hex'
     @clientId = md5.substring 0, 15
 
-    @sock = net.Socket()
-    await @sock.connect 4000, 'localhost', defer err
+    @sock = new RockSolidSocket 'localhost:4000'
+
     @rpc = new MsgpackRPC 'stampery.3', @sock
     @authed = false
+    @connected = false
 
+  connectToQueue : (cb) ->
+    if @connected
+      cb null, @conn
+    else
+      await amqp.connect 'amqp://ukgmnhoi:iP8PxJN_rPTT2lls6CEeKsC93aEnQKgx@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @conn
+
+      if err
+        console.log "[QUEUE] Error connecting #{err}"
+        cb err, null
+      else
+        @connected = true
+        cb null, @conn
+
+      @conn.on 'error', (e) ->
+        console.log "[QUEUE] Connection error: #{e}"
+        cb e, null
+    
   hash : (data) ->
     hash = crypto.createHash 'sha256'
     hash.update data
@@ -31,7 +51,7 @@ class Stampery
 
     fd.pipe hash
 
-  stamp : (data, cb) ->
+  stamp : (data, cb) =>
     dataHash = null
     if data instanceof stream
       await @hashFile data, defer hash
@@ -40,10 +60,24 @@ class Stampery
       dataHash = @hash data
 
     if !@authed
+      console.log "[RPC] No auth"
       await @rpc.invoke 'auth', [@clientId, @apiSecret], defer err, res
       if err
         return cb err, null
+      else
+        console.log "[RPC] Authed: #{err}, #{res}"
     
-    @rpc.invoke 'stamp', [dataHash], cb
+    await @rpc.invoke 'stamp', [dataHash], defer err, res
+    if err
+      console.log "[RPC] Error: #{err}"
+    @connectToQueue (err, conn) =>
+      if err
+        console.log "[QUEUE] Error connecting to RabbitMQ"
+      else
+        await @conn.createChannel defer err, channel
+        await channel.assertQueue dataHash, {durable: true}, defer err, ok
+        channel.consume dataHash, (msg) ->
+          console.log "[QUEUE] Received -> %s", msg.content.toString()
+          channel.ack msg
 
 module.exports = Stampery
