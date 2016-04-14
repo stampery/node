@@ -51,5 +51,6 @@ class Stampery
     channel.consume "#{hash}-clnt", (msg) ->
       console.log "[QUEUE] Received -> %s", msg.content.toString()
       channel.ack msg
+      cb msg
 
 module.exports = Stampery
