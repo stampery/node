@@ -99,6 +99,8 @@ class Stampery
       console.log "[QUEUE] Bound to #{hash}-clnt", err
       @channel.consume "#{hash}-clnt", (queueMsg) =>
         @channel.ack queueMsg
+        # Nucleus response spec
+        # [v, [sib], root, [chain, txid]]
         unpackedMsg = msgpack.unpack queueMsg.content
         console.log ((unpackedMsg[3][0] is 1) or (unpackedMsg[3][0] is -1)), ((unpackedMsg[3][0] is 2) or (unpackedMsg[3][0] is -2))
         if (unpackedMsg[3][0] is 1) or (unpackedMsg[3][0] is -1)
@@ -115,8 +117,6 @@ class Stampery
               console.log "[QUEUE-BTC] Received -> %s", unpackedBtcMsg
               cb null, unpackedBtcMsg
           cb null, unpackedMsg
-        else
-          console.log 'wtf nigga', unpackedMsg
     else
       cb "Error binding to #{hash}-clnt", null
 

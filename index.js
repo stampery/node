@@ -337,8 +337,6 @@
                     });
                   }
                   return cb(null, unpackedMsg);
-                } else {
-                  return console.log('wtf nigga', unpackedMsg);
                 }
               }));
             });
