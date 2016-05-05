@@ -1,13 +1,23 @@
 Stampery = require './index.iced'
 fs = require 'fs'
 
-stampery = new Stampery '3c257d54-4747-49e7-9909-2508e12de213', true
+stampery = new Stampery '578d5e19-60ac-4125-d562-8b16e67d041a', true
 
-await stampery.hash Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 63).toString(), defer randomHash 
+stampery.on 'proof', (hash, proof) ->
+  console.log 'Received proof for ' + hash + ':', proof
 
-console.log "Stamping #{randomHash}"
-stampery.stamp randomHash, (err, hash) ->
-  console.log 'Stamped', hash, err
+stampery.on 'error', (err) ->
+  console.log 'woot: ', err
+
+stampery.on 'ready', () ->
+  # await stampery.hash Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 63).toString(), defer randomHash 
+  # console.log "Stamping #{randomHash}"
+  # stampery.stamp randomHash
+
+  stampery.receiveMissedProofs 'CBD48B89EDA1A7BB22728A93E165FC8448BA2FC08BBBD8896D4CB231DDDA8E871650F12171E71689A14BC886A1243C315C11C5DFB05AEEDFA6D40610A37A0C2'
+
+
+  
 
 # fakeSiblings = []
 # i = 0

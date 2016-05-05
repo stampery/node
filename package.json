@@ -22,7 +22,7 @@
     "grunt": "^1.0.1",
     "iced-runtime": "^1.0.2",
     "msgpack": "^1.0.2",
-    "msgpackrpc": "^1.0.5",
+    "msgpackrpc": "stampery/msgpackrpc",
     "request": "^2.60.0",
     "retry": "^0.8.0",
     "rocksolidsocket": "^1.0.0",
