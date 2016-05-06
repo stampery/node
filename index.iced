@@ -80,16 +80,6 @@ class Stampery
     return @emit 'error', err if err
     @authed = true
 
-  retrieveProofForHash : (hash, cb) ->
-    await @rabbit.createChannel defer err, @channel
-    console.log "[QUEUE] Bound to #{hash}-clnt", err
-    await @channel.assertQueue "#{hash}-clnt", {durable: true}, defer err, ok if @channel
-    @channel.consume "#{hash}-clnt", (msg) ->
-      delete @hashCache[@hashCache.indexOf(hash)]
-      console.log "[QUEUE] Received -> %s", msg.content.toString()
-      @channel.ack msg
-      return cb null, msg
-
   calculateProof: (hash, siblings, cb) ->
     lastComputedLeave = hash
     for idx of siblings
