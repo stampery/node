@@ -190,67 +190,6 @@
       })(this));
     };
 
-    Stampery.prototype.retrieveProofForHash = function(hash, cb) {
-      var err, ok, ___iced_passed_deferral, __iced_deferrals, __iced_k;
-      __iced_k = __iced_k_noop;
-      ___iced_passed_deferral = iced.findDeferral(arguments);
-      (function(_this) {
-        return (function(__iced_k) {
-          __iced_deferrals = new iced.Deferrals(__iced_k, {
-            parent: ___iced_passed_deferral,
-            filename: "./index.iced",
-            funcname: "Stampery.retrieveProofForHash"
-          });
-          _this.rabbit.createChannel(__iced_deferrals.defer({
-            assign_fn: (function(__slot_1) {
-              return function() {
-                err = arguments[0];
-                return __slot_1.channel = arguments[1];
-              };
-            })(_this),
-            lineno: 83
-          }));
-          __iced_deferrals._fulfill();
-        });
-      })(this)((function(_this) {
-        return function() {
-          console.log("[QUEUE] Bound to " + hash + "-clnt", err);
-          (function(__iced_k) {
-            if (_this.channel) {
-              (function(__iced_k) {
-                __iced_deferrals = new iced.Deferrals(__iced_k, {
-                  parent: ___iced_passed_deferral,
-                  filename: "./index.iced",
-                  funcname: "Stampery.retrieveProofForHash"
-                });
-                _this.channel.assertQueue("" + hash + "-clnt", {
-                  durable: true
-                }, __iced_deferrals.defer({
-                  assign_fn: (function() {
-                    return function() {
-                      err = arguments[0];
-                      return ok = arguments[1];
-                    };
-                  })(),
-                  lineno: 85
-                }));
-                __iced_deferrals._fulfill();
-              })(__iced_k);
-            } else {
-              return __iced_k();
-            }
-          })(function() {
-            return _this.channel.consume("" + hash + "-clnt", function(msg) {
-              delete this.hashCache[this.hashCache.indexOf(hash)];
-              console.log("[QUEUE] Received -> %s", msg.content.toString());
-              this.channel.ack(msg);
-              return cb(null, msg);
-            });
-          });
-        };
-      })(this));
-    };
-
     Stampery.prototype.calculateProof = function(hash, siblings, cb) {
       var idx, lastComputedLeave, sibling;
       lastComputedLeave = hash;
@@ -284,7 +223,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 106
+              lineno: 96
             }));
             __iced_deferrals._fulfill();
           });
@@ -308,7 +247,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 110
+              lineno: 100
             }));
             __iced_deferrals._fulfill();
           });
@@ -339,7 +278,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 115
+              lineno: 105
             }));
             __iced_deferrals._fulfill();
           });
@@ -371,43 +310,57 @@
       var err, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
-      this._connectRabbit();
-      if (!this.authed) {
-        this._auth();
-      }
-      hash = hash.toUpperCase();
-      if (!this.rabbit) {
-        return setTimeout(this.stamp.bind(this, hash), 500);
-      }
       (function(_this) {
         return (function(__iced_k) {
-          __iced_deferrals = new iced.Deferrals(__iced_k, {
-            parent: ___iced_passed_deferral,
-            filename: "./index.iced",
-            funcname: "Stampery.stamp"
-          });
-          _this.rpc.invoke('stamp', [hash], __iced_deferrals.defer({
-            assign_fn: (function() {
-              return function() {
-                err = arguments[0];
-                return res = arguments[1];
-              };
-            })(),
-            lineno: 143
-          }));
-          __iced_deferrals._fulfill();
+          if (!_this.authed) {
+            (function(__iced_k) {
+              __iced_deferrals = new iced.Deferrals(__iced_k, {
+                parent: ___iced_passed_deferral,
+                filename: "./index.iced",
+                funcname: "Stampery.stamp"
+              });
+              _this._auth(__iced_deferrals.defer({
+                lineno: 129
+              }));
+              __iced_deferrals._fulfill();
+            })(__iced_k);
+          } else {
+            return __iced_k();
+          }
         });
       })(this)((function(_this) {
         return function() {
-          if (!_this.authed) {
-            return _this.emit('error', 'Not authenticated');
+          hash = hash.toUpperCase();
+          if (!_this.rabbit) {
+            return setTimeout(_this.stamp.bind(_this, hash), 500);
           }
-          console.log("[API] Received response: ", res);
-          if (err) {
-            console.log("[RPC] Error: " + err);
-            _this.emit('error', err);
-          }
-          return _this._handleQueueConsumingForHash(hash);
+          (function(__iced_k) {
+            __iced_deferrals = new iced.Deferrals(__iced_k, {
+              parent: ___iced_passed_deferral,
+              filename: "./index.iced",
+              funcname: "Stampery.stamp"
+            });
+            _this.rpc.invoke('stamp', [hash], __iced_deferrals.defer({
+              assign_fn: (function() {
+                return function() {
+                  err = arguments[0];
+                  return res = arguments[1];
+                };
+              })(),
+              lineno: 132
+            }));
+            __iced_deferrals._fulfill();
+          })(function() {
+            if (!_this.authed) {
+              return _this.emit('error', 'Not authenticated');
+            }
+            console.log("[API] Received response: ", res);
+            if (err) {
+              console.log("[RPC] Error: " + err);
+              _this.emit('error', err);
+            }
+            return _this._handleQueueConsumingForHash(hash);
+          });
         };
       })(this));
     };

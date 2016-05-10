@@ -127,8 +127,7 @@ class Stampery
       @emit 'error', "Error binding to #{hash}-clnt"
 
   stamp : (hash) ->
-    @_connectRabbit()
-    @_auth() if !@authed
+    await @_auth defer() if !@authed
     hash = hash.toUpperCase()
     return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
     await @rpc.invoke 'stamp', [hash], defer err, res
