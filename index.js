@@ -52,10 +52,12 @@
       var host, sock;
       this.clientSecret = clientSecret;
       this.beta = beta;
+      this.receiveMissedProofs = __bind(this.receiveMissedProofs, this);
+      this._auth = __bind(this._auth, this);
       this._connectRabbit = __bind(this._connectRabbit, this);
       this.clientId = this._hash('md5', this.clientSecret).substring(0, 15);
       if (this.beta) {
-        host = 'api-beta-0.us-east.aws.stampery.com:4000';
+        host = 'api-beta.stampery.com:4000';
       } else {
         host = 'api-0.us-east.aws.stampery.com:4000';
       }
@@ -157,7 +159,7 @@
       });
     };
 
-    Stampery.prototype._auth = function() {
+    Stampery.prototype._auth = function(cb) {
       var err, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
@@ -185,31 +187,31 @@
           if (err) {
             return _this.emit('error', err);
           }
-          return _this.authed = true;
+          return cb(true);
         };
       })(this));
     };
 
     Stampery.prototype.calculateProof = function(hash, siblings, cb) {
-      var idx, lastComputedLeave, sibling;
-      lastComputedLeave = hash;
+      var idx, lastComputedleaf, sibling;
+      lastComputedleaf = hash;
       for (idx in siblings) {
         sibling = siblings[idx];
-        console.log("[SIBLINGS] Calculating sibling " + idx, lastComputedLeave, sibling);
-        this._sumSiblings(lastComputedLeave, sibling, function(sum) {
+        console.log("[SIBLINGS] Calculating sibling " + idx, lastComputedleaf, sibling);
+        this._sumSiblings(lastComputedleaf, sibling, function(sum) {
           console.log("[SIBLINGS] Calculated " + sum);
-          return lastComputedLeave = sum;
+          return lastComputedleaf = sum;
         });
       }
-      return cb(lastComputedLeave);
+      return cb(lastComputedleaf);
     };
 
-    Stampery.prototype._sumSiblings = function(leave1, leave2, cb) {
+    Stampery.prototype._sumSiblings = function(leaf1, leaf2, cb) {
       var hash, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
-      if (parseInt(leave1, 16) > parseInt(leave2, 16)) {
-        console.log("[SIBLINGS] Leave1 is bigger than Leave2");
+      if (parseInt(leaf1, 16) > parseInt(leaf2, 16)) {
+        console.log("[SIBLINGS] Leaf1 is bigger than Leaf2");
         (function(_this) {
           return (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
@@ -217,7 +219,7 @@
               filename: "./index.iced",
               funcname: "Stampery._sumSiblings"
             });
-            _this._sha3Hash("" + leave1 + leave2, __iced_deferrals.defer({
+            _this._sha3Hash("" + leaf1 + leaf2, __iced_deferrals.defer({
               assign_fn: (function() {
                 return function() {
                   return hash = arguments[0];
@@ -233,7 +235,7 @@
           };
         })(this));
       } else {
-        console.log("[SIBLINGS] Leave2 is bigger than Leave1");
+        console.log("[SIBLINGS] Leaf2 is bigger than Leaf1");
         (function(_this) {
           return (function(__iced_k) {
             __iced_deferrals = new iced.Deferrals(__iced_k, {
@@ -241,7 +243,7 @@
               filename: "./index.iced",
               funcname: "Stampery._sumSiblings"
             });
-            _this._sha3Hash("" + leave2 + leave1, __iced_deferrals.defer({
+            _this._sha3Hash("" + leaf2 + leaf1, __iced_deferrals.defer({
               assign_fn: (function() {
                 return function() {
                   return hash = arguments[0];
@@ -259,7 +261,7 @@
       }
     };
 
-    Stampery.prototype._handleQueueConsumingForHash = function(hash) {
+    Stampery.prototype._handleQueueConsumingForHash = function(queue) {
       var err, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
@@ -284,11 +286,12 @@
           });
         })(this)((function(_this) {
           return function() {
-            console.log("[QUEUE] Bound to " + hash + "-clnt", err);
-            return __iced_k(_this.channel.consume("" + hash + "-clnt", function(queueMsg) {
-              var unpackedMsg;
+            console.log("[QUEUE] Bound to " + queue + "-clnt", err);
+            return __iced_k(_this.channel.consume("" + queue + "-clnt", function(queueMsg) {
+              var hash, unpackedMsg;
               console.log("[QUEUE] Received data!");
               unpackedMsg = msgpack.unpack(queueMsg.content);
+              hash = queueMsg.fields.routingKey;
               if (unpackedMsg[3][0] === 1 || unpackedMsg[3][0] === -1) {
                 console.log('[QUEUE] Received BTC proof for ' + hash);
                 unpackedMsg[1] = (_this.ethSiblings[hash] || []).concat(unpackedMsg[1] || []);
@@ -310,6 +313,7 @@
       var err, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
+      console.log("Stamping " + hash);
       (function(_this) {
         return (function(__iced_k) {
           if (!_this.authed) {
@@ -320,7 +324,12 @@
                 funcname: "Stampery.stamp"
               });
               _this._auth(__iced_deferrals.defer({
-                lineno: 129
+                assign_fn: (function(__slot_1) {
+                  return function() {
+                    return __slot_1.authed = arguments[0];
+                  };
+                })(_this),
+                lineno: 133
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -331,6 +340,7 @@
       })(this)((function(_this) {
         return function() {
           hash = hash.toUpperCase();
+          console.log("Let's stamp " + hash);
           if (!_this.rabbit) {
             return setTimeout(_this.stamp.bind(_this, hash), 500);
           }
@@ -347,26 +357,26 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 132
+              lineno: 137
             }));
             __iced_deferrals._fulfill();
           })(function() {
+            console.log('RES', err, res);
             if (!_this.authed) {
               return _this.emit('error', 'Not authenticated');
             }
             console.log("[API] Received response: ", res);
             if (err) {
               console.log("[RPC] Error: " + err);
-              _this.emit('error', err);
+              return _this.emit('error', err);
             }
-            return _this._handleQueueConsumingForHash(hash);
           });
         };
       })(this));
     };
 
-    Stampery.prototype.receiveMissedProofs = function(hash) {
-      return this._handleQueueConsumingForHash(hash.toUpperCase());
+    Stampery.prototype.receiveMissedProofs = function() {
+      return this._handleQueueConsumingForHash(this.clientId);
     };
 
     return Stampery;

@@ -29,7 +29,7 @@ class Stampery
     @clientId = @_hash('md5', @clientSecret).substring 0, 15
 
     if @beta
-      host = 'api-beta-0.us-east.aws.stampery.com:4000'
+      host = 'api-beta.stampery.com:4000'
     else
       host = 'api-0.us-east.aws.stampery.com:4000'
 
@@ -74,42 +74,44 @@ class Stampery
     fd.on 'data', (data) ->
       hash.update data
 
-  _auth : () ->
+  _auth : (cb) =>
     await @rpc.invoke 'auth', [@clientId, @clientSecret], defer err, res
     console.log "[RPC] Auth: ", err, res
     return @emit 'error', err if err
-    @authed = true
+    cb true
 
   calculateProof: (hash, siblings, cb) ->
-    lastComputedLeave = hash
+    lastComputedleaf = hash
     for idx of siblings
       sibling = siblings[idx]
-      console.log "[SIBLINGS] Calculating sibling #{idx}", lastComputedLeave, sibling
-      @_sumSiblings lastComputedLeave, sibling, (sum) ->
+      console.log "[SIBLINGS] Calculating sibling #{idx}", lastComputedleaf, sibling
+      @_sumSiblings lastComputedleaf, sibling, (sum) ->
         console.log "[SIBLINGS] Calculated #{sum}"
-        lastComputedLeave = sum
-    
-    cb lastComputedLeave
+        lastComputedleaf = sum
 
-  _sumSiblings: (leave1, leave2, cb) ->
-    if parseInt(leave1, 16) > parseInt(leave2, 16)
-      console.log "[SIBLINGS] Leave1 is bigger than Leave2"
-      await @_sha3Hash "#{leave1}#{leave2}", defer hash
+    cb lastComputedleaf
+
+  _sumSiblings: (leaf1, leaf2, cb) ->
+    if parseInt(leaf1, 16) > parseInt(leaf2, 16)
+      console.log "[SIBLINGS] Leaf1 is bigger than Leaf2"
+      await @_sha3Hash "#{leaf1}#{leaf2}", defer hash
       cb hash
     else
-      console.log "[SIBLINGS] Leave2 is bigger than Leave1"
-      await @_sha3Hash "#{leave2}#{leave1}", defer hash
+      console.log "[SIBLINGS] Leaf2 is bigger than Leaf1"
+      await @_sha3Hash "#{leaf2}#{leaf1}", defer hash
       cb hash
 
-  _handleQueueConsumingForHash: (hash) ->
+  _handleQueueConsumingForHash: (queue) ->
     if @rabbit
       await @rabbit.createChannel defer err, @channel
-      console.log "[QUEUE] Bound to #{hash}-clnt", err
-      @channel.consume "#{hash}-clnt", (queueMsg) =>
+      console.log "[QUEUE] Bound to #{queue}-clnt", err
+      @channel.consume "#{queue}-clnt", (queueMsg) =>
         console.log "[QUEUE] Received data!"
         # Nucleus response spec
         # [v, [sib], root, [chain, txid]]
         unpackedMsg = msgpack.unpack queueMsg.content
+        # The original hash is the routing_key
+        hash = queueMsg.fields.routingKey
         if unpackedMsg[3][0] == 1 or unpackedMsg[3][0] == -1
           # Checking if the chain is Bitcoin
           console.log '[QUEUE] Received BTC proof for ' + hash
@@ -127,20 +129,22 @@ class Stampery
       @emit 'error', "Error binding to #{hash}-clnt"
 
   stamp : (hash) ->
-    await @_auth defer() if !@authed
+    console.log "Stamping #{hash}"
+    unless @authed
+      await @_auth defer @authed
     hash = hash.toUpperCase()
+    console.log "Let's stamp #{hash}"
     return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
     await @rpc.invoke 'stamp', [hash], defer err, res
+    console.log 'RES', err, res
     return @emit 'error', 'Not authenticated' if !@authed
     console.log "[API] Received response: ", res
     if err
       console.log "[RPC] Error: #{err}"
       @emit 'error', err
 
-    @_handleQueueConsumingForHash hash
-
-  receiveMissedProofs: (hash) ->
-    @_handleQueueConsumingForHash hash.toUpperCase()
+  receiveMissedProofs: () =>
+    @_handleQueueConsumingForHash @clientId
 
 util.inherits Stampery, EventEmitter
 
