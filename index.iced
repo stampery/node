@@ -31,7 +31,7 @@ class Stampery
     if @beta
       host = 'api-beta.stampery.com:4000'
     else
-      host = 'api-0.us-east.aws.stampery.com:4000'
+      host = 'api.stampery.com:4000'
 
     sock = new RockSolidSocket host
     @rpc = new MsgpackRPC 'stampery.3', sock

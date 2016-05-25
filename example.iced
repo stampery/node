@@ -13,8 +13,10 @@ stampery.on 'error', (err) ->
 
 stampery.on 'ready', () ->
   stampery.receiveMissedProofs()
-  i = 0
-  while i < 1
-    await stampery.hash Math.random().toString(36).slice(2), defer randomHash
-    stampery.stamp randomHash
-    i++
+  await stampery.hash "whatever", defer hash
+  console.log hash
+#  i = 0
+#  while i < 1
+#    await stampery.hash Math.random().toString(36).slice(2), defer randomHash
+#    stampery.stamp randomHash
+#    i++
