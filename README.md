@@ -44,10 +44,11 @@ After calling the API with your hash, You will have to **consume**** a queue whi
 3. After you’re authed, just call “stamp” with your hash as a param
 4. Then, subscribe to the queue “{yourhash}-clnt”
 5. When the final proofs are delivered, that’s it!
+
 # Official implementations
 - [NodeJS](https://github.com/stampery/node)
-# Verifying a proof
 
+# Verifying a proof
 In order to verify a hash has been timestamped, you need both the hash and its proof.
 The process is the following:
 
