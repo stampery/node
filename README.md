@@ -1,7 +1,25 @@
+
 Stampery
 =======
 
 [![NPM Package](https://img.shields.io/npm/v/stampery.svg?style=flat-square)](https://www.npmjs.org/package/stampery)
+
+
+
+# Use
+
+```javascript
+Stampery = require 'stampery'
+
+stampery = new Stampery 'yourSecretToken'
+
+stampery.on 'proof', (hash, proof) ->
+  console.log 'Received proof for ' + hash
+
+stampery.on 'ready', () ->
+  stampery.receiveMissedProofs()
+  await stampery.hash 'yourHash', defer hash
+```
 
 # Intro
 
