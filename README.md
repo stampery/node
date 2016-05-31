@@ -18,7 +18,7 @@ stampery.on 'proof', (hash, proof) ->
 
 stampery.on 'ready', () ->
   stampery.receiveMissedProofs()
-  await stampery.hash 'yourHash', defer hash
+  await stampery.stamp 'yourHash'
 ```
 
 # Intro
