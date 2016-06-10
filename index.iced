@@ -7,7 +7,8 @@ amqp = require 'amqplib/callback_api'
 msgpack = require 'msgpack'
 domain = require 'domain'
 util = require 'util'
-EventEmitter = require('events').EventEmitter;
+request = require 'request'
+EventEmitter = require('events').EventEmitter
 
 amqpDomain = domain.create()
 amqpDomain.on 'error', (err) =>
@@ -18,12 +19,20 @@ class Stampery
   ethSiblings: {}
   authed: false
 
-  convertSiblingArray: (siblings) ->
-    if siblings == ''
+  _convertSiblingArray : (siblings) =>
+    if siblings is ''
       []
     else
       siblings.map (v, i) ->
-        new Buffer(v).toString()
+        v.toString()
+
+  _recursiveConvert : (proof) =>
+    proof.map (e) =>
+      if e instanceof Buffer
+        e = e.toString 'utf8'
+      else if e instanceof Array
+        e = @_recursiveConvert e
+      e
 
   constructor : (@clientSecret, @beta) ->
     @clientId = @_hash('md5', @clientSecret).substring 0, 15
@@ -101,7 +110,7 @@ class Stampery
       await @_sha3Hash "#{leaf2}#{leaf1}", defer hash
       cb hash
 
-  _handleQueueConsumingForHash: (queue) ->
+  _handleQueueConsumingForHash: (queue) =>
     if @rabbit
       await @rabbit.createChannel defer err, @channel
       console.log "[QUEUE] Bound to #{queue}-clnt", err
@@ -112,19 +121,18 @@ class Stampery
         unpackedMsg = msgpack.unpack queueMsg.content
         # The original hash is the routing_key
         hash = queueMsg.fields.routingKey
-        if unpackedMsg[3][0] == 1 or unpackedMsg[3][0] == -1
+        if unpackedMsg[3][0] is 1 or unpackedMsg[3][0] is -1
           # Checking if the chain is Bitcoin
           console.log '[QUEUE] Received BTC proof for ' + hash
           unpackedMsg[1] = (@ethSiblings[hash] or []).concat(unpackedMsg[1] or [])
-          # Checking if the chain is Bitcoin
-        else if unpackedMsg[3][0] == 2 or unpackedMsg[3][0] == -2
+        else if unpackedMsg[3][0] is 2 or unpackedMsg[3][0] is -2
           # Checking if the chain is Ethereum
           console.log '[QUEUE] Received ETH proof for ' + hash
-          @ethSiblings[hash] = @convertSiblingArray(unpackedMsg[1])
-          # Checking if the chain is Ethereum
+          @ethSiblings[hash] = @_convertSiblingArray(unpackedMsg[1])
         # ACKing the queue message
         @channel.ack queueMsg
-        @emit 'proof', hash, unpackedMsg
+        niceProof = @_recursiveConvert unpackedMsg
+        @emit 'proof', hash, niceProof
     else
       @emit 'error', "Error binding to #{hash}-clnt"
 
@@ -145,6 +153,51 @@ class Stampery
 
   receiveMissedProofs: () =>
     @_handleQueueConsumingForHash @clientId
+
+  _merkleMixer : (a, b, cb) =>
+    if b > a
+      [a, b] = [b, a]
+    data = a + b
+    _sha3Hash data, cb
+
+  prove : (hash, proof) ->
+    siblingsAreOK = @checkSiblings hash, proof[1], proof[2]
+    rootIsInChain = @checkRootInChain proof[2], proof[3][0], proof[3][1]
+    siblingsAreOK and rootIsInChain
+
+  checkDataIntegrity : (data, proof) ->
+    await @hash data, defer hash
+    @prove hash, proof
+
+  checkSiblings : (hash, siblings, root) ->
+    if siblings.length > 0
+      head = siblings[0]
+      tail = siblings.slice 1
+      await @_merkleMixer hash, head, defer hash
+      @checkSiblings hash, tail, root
+    else
+      hash is root
+
+  checkRootInChain : (root, chain, txid) ->
+    txData = @_getBTCtx txid
+    if chain is 2
+      tx = @_getETHtx txid
+    txData.indexOf root.toLowerCase()
+
+  _getBTCtx : (txid) ->
+    request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) ->
+      if err or !body or !JSON.parse(body).data_hex
+        throw new Error 'BTC explorer error'
+      JSON.parse(body).outputs.find (e) ->
+        e.data_hex and e.data_hex
+
+  _getETHtx : (txid) ->
+    request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) ->
+      if err or !body or !JSON.parse(body).result
+        throw new Error 'ETH explorer error'
+      console.log body
+      JSON.parse(body).result.input
+
 
 util.inherits Stampery, EventEmitter
 

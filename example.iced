@@ -1,22 +1,20 @@
 Stampery = require './index.iced'
 fs = require 'fs'
 
-stampery = new Stampery '054c81b2-0040-46df-a54b-a0e3793970a4', true
+stampery = new Stampery '2d4cdee7-38b0-4a66-da87-c1ab05b43768'
 
 
 stampery.on 'proof', (hash, proof) ->
   console.log 'Received proof for ' + hash + ':'
   console.log proof
+  valid = stampery.prove hash, proof
+  console.log 'Proof validity:', valid
 
 stampery.on 'error', (err) ->
   console.log 'woot: ', err
 
 stampery.on 'ready', () ->
   stampery.receiveMissedProofs()
-  await stampery.hash "whatever", defer hash
+  await stampery.hash 'The piano has been drinking', defer hash
+  stampery.stamp hash
   console.log hash
-#  i = 0
-#  while i < 1
-#    await stampery.hash Math.random().toString(36).slice(2), defer randomHash
-#    stampery.stamp randomHash
-#    i++
