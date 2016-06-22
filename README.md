@@ -7,6 +7,27 @@ Stampery
 # Usage
 
 ```javascript
+Stampery = require('stampery');
+
+stampery = new Stampery('yourSecretToken')
+
+stampery.on('proof', function(hash, proof) {
+  console.log("Received proof for " + hash, proof);
+  valid = stampery.prove(hash, proof);
+  console.log('Proof validity:', valid);
+});
+
+stampery.on('ready', function() {
+  stampery.receiveMissedProofs();
+  stampery.hash('The piano has been drinking', function(hash) {
+    stampery.stamp(hash);
+  });
+});
+```
+
+Here is the same example, just using our beloved IcedCoffeeScript:
+
+```coffeescript
 Stampery = require 'stampery'
 
 stampery = new Stampery 'yourSecretToken'
@@ -16,7 +37,7 @@ stampery.on 'proof', (hash, proof) ->
   valid = stampery.prove hash, proof
   console.log 'Proof validity:', valid
 
-stampery.on 'ready', () ->
+stampery.on 'ready', ->
   stampery.receiveMissedProofs()
   await stampery.hash 'The piano has been drinking', defer hash
   stampery.stamp hash
