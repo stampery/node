@@ -19,7 +19,6 @@
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.4.1",
-    "grunt": "^1.0.1",
     "iced-runtime": "^1.0.2",
     "msgpack": "^1.0.2",
     "msgpackrpc": "stampery/msgpackrpc",
@@ -33,6 +32,7 @@
     "url": "https://github.com/stampery/node.git"
   },
   "devDependencies": {
+    "grunt": "^1.0.1",
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-iced-coffee": "^0.7.0",
     "iced-coffee-script": "^108.0.11"
