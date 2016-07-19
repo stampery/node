@@ -100,7 +100,7 @@ class Stampery
 
     cb lastComputedleaf
 
-  _sumSiblings: (leaf1, leaf2, cb) ->
+  _sumSiblings: (leaf1, leaf2, cb) =>
     if parseInt(leaf1, 16) > parseInt(leaf2, 16)
       console.log "[SIBLINGS] Leaf1 is bigger than Leaf2"
       await @_sha3Hash "#{leaf1}#{leaf2}", defer hash
@@ -144,7 +144,6 @@ class Stampery
     console.log "Let's stamp #{hash}"
     return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
     await @rpc.invoke 'stamp', [hash], defer err, res
-    console.log 'RES', err, res
     return @emit 'error', 'Not authenticated' if !@authed
     console.log "[API] Received response: ", res
     if err
@@ -160,43 +159,44 @@ class Stampery
     data = a + b
     _sha3Hash data, cb
 
-  prove : (hash, proof) ->
-    siblingsAreOK = @checkSiblings hash, proof[1], proof[2]
-    rootIsInChain = @checkRootInChain proof[2], proof[3][0], proof[3][1]
-    siblingsAreOK and rootIsInChain
+  prove : (hash, proof, cb) =>
+    await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
+    await @checkRootInChain proof[2], proof[3][0], proof[3][1], defer rootIsInChain
+    cb siblingsAreOK and rootIsInChain
 
   checkDataIntegrity : (data, proof) ->
     await @hash data, defer hash
     @prove hash, proof
 
-  checkSiblings : (hash, siblings, root) ->
+  checkSiblings : (hash, siblings, root, cb) =>
     if siblings.length > 0
       head = siblings[0]
       tail = siblings.slice 1
       await @_merkleMixer hash, head, defer hash
-      @checkSiblings hash, tail, root
+      cb @checkSiblings hash, tail, root, cb
     else
-      hash is root
+      cb hash is root
 
-  checkRootInChain : (root, chain, txid) ->
-    txData = @_getBTCtx txid
+  checkRootInChain : (root, chain, txid, cb) =>
+    f = @_getBTCtx
     if chain is 2
-      tx = @_getETHtx txid
-    txData.indexOf root.toLowerCase()
+      f = @_getETHtx
+    await f txid, defer data
+    cb data.indexOf(root.toLowerCase()) >= 0
 
-  _getBTCtx : (txid) ->
+  _getBTCtx : (txid, cb) ->
     request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) ->
-      if err or !body or !JSON.parse(body).data_hex
+      if err or !body or !JSON.parse(body).outputs
         throw new Error 'BTC explorer error'
-      JSON.parse(body).outputs.find (e) ->
-        e.data_hex and e.data_hex
+      tx = JSON.parse(body).outputs.find (e) ->
+        e.data_hex?
+      cb tx.data_hex
 
-  _getETHtx : (txid) ->
+  _getETHtx : (txid, cb) ->
     request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) ->
       if err or !body or !JSON.parse(body).result
         throw new Error 'ETH explorer error'
-      console.log body
-      JSON.parse(body).result.input
+      cb JSON.parse(body).result.input
 
 
 util.inherits Stampery, EventEmitter

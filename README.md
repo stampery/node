@@ -13,8 +13,9 @@ stampery = new Stampery('yourSecretToken')
 
 stampery.on('proof', function(hash, proof) {
   console.log("Received proof for " + hash, proof);
-  valid = stampery.prove(hash, proof);
-  console.log('Proof validity:', valid);
+  stampery.prove(hash, proof, function (valid) {
+    console.log('Proof validity:', valid);
+  });
 });
 
 stampery.on('ready', function() {

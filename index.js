@@ -67,9 +67,13 @@
       var host, sock;
       this.clientSecret = clientSecret;
       this.beta = beta;
+      this.checkRootInChain = __bind(this.checkRootInChain, this);
+      this.checkSiblings = __bind(this.checkSiblings, this);
+      this.prove = __bind(this.prove, this);
       this._merkleMixer = __bind(this._merkleMixer, this);
       this.receiveMissedProofs = __bind(this.receiveMissedProofs, this);
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
+      this._sumSiblings = __bind(this._sumSiblings, this);
       this._auth = __bind(this._auth, this);
       this._connectRabbit = __bind(this._connectRabbit, this);
       this._recursiveConvert = __bind(this._recursiveConvert, this);
@@ -381,7 +385,6 @@
             }));
             __iced_deferrals._fulfill();
           })(function() {
-            console.log('RES', err, res);
             if (!_this.authed) {
               return _this.emit('error', 'Not authenticated');
             }
@@ -408,11 +411,49 @@
       return _sha3Hash(data, cb);
     };
 
-    Stampery.prototype.prove = function(hash, proof) {
-      var rootIsInChain, siblingsAreOK;
-      siblingsAreOK = this.checkSiblings(hash, proof[1], proof[2]);
-      rootIsInChain = this.checkRootInChain(proof[2], proof[3][0], proof[3][1]);
-      return siblingsAreOK && rootIsInChain;
+    Stampery.prototype.prove = function(hash, proof, cb) {
+      var rootIsInChain, siblingsAreOK, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      __iced_k = __iced_k_noop;
+      ___iced_passed_deferral = iced.findDeferral(arguments);
+      (function(_this) {
+        return (function(__iced_k) {
+          __iced_deferrals = new iced.Deferrals(__iced_k, {
+            parent: ___iced_passed_deferral,
+            filename: "./index.iced",
+            funcname: "Stampery.prove"
+          });
+          _this.checkSiblings(hash, proof[1], proof[2], __iced_deferrals.defer({
+            assign_fn: (function() {
+              return function() {
+                return siblingsAreOK = arguments[0];
+              };
+            })(),
+            lineno: 162
+          }));
+          __iced_deferrals._fulfill();
+        });
+      })(this)((function(_this) {
+        return function() {
+          (function(__iced_k) {
+            __iced_deferrals = new iced.Deferrals(__iced_k, {
+              parent: ___iced_passed_deferral,
+              filename: "./index.iced",
+              funcname: "Stampery.prove"
+            });
+            _this.checkRootInChain(proof[2], proof[3][0], proof[3][1], __iced_deferrals.defer({
+              assign_fn: (function() {
+                return function() {
+                  return rootIsInChain = arguments[0];
+                };
+              })(),
+              lineno: 163
+            }));
+            __iced_deferrals._fulfill();
+          })(function() {
+            return cb(siblingsAreOK && rootIsInChain);
+          });
+        };
+      })(this));
     };
 
     Stampery.prototype.checkDataIntegrity = function(data, proof) {
@@ -432,7 +473,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 168
+            lineno: 167
           }));
           __iced_deferrals._fulfill();
         });
@@ -443,7 +484,7 @@
       })(this));
     };
 
-    Stampery.prototype.checkSiblings = function(hash, siblings, root) {
+    Stampery.prototype.checkSiblings = function(hash, siblings, root, cb) {
       var head, tail, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
@@ -463,47 +504,72 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 175
+              lineno: 174
             }));
             __iced_deferrals._fulfill();
           });
         })(this)((function(_this) {
           return function() {
-            return __iced_k(_this.checkSiblings(hash, tail, root));
+            return __iced_k(cb(_this.checkSiblings(hash, tail, root, cb)));
           };
         })(this));
       } else {
-        return __iced_k(hash === root);
+        return __iced_k(cb(hash === root));
       }
     };
 
-    Stampery.prototype.checkRootInChain = function(root, chain, txid) {
-      var tx, txData;
-      txData = this._getBTCtx(txid);
+    Stampery.prototype.checkRootInChain = function(root, chain, txid, cb) {
+      var data, f, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      __iced_k = __iced_k_noop;
+      ___iced_passed_deferral = iced.findDeferral(arguments);
+      f = this._getBTCtx;
       if (chain === 2) {
-        tx = this._getETHtx(txid);
+        f = this._getETHtx;
       }
-      return txData.indexOf(root.toLowerCase());
+      (function(_this) {
+        return (function(__iced_k) {
+          __iced_deferrals = new iced.Deferrals(__iced_k, {
+            parent: ___iced_passed_deferral,
+            filename: "./index.iced",
+            funcname: "Stampery.checkRootInChain"
+          });
+          f(txid, __iced_deferrals.defer({
+            assign_fn: (function() {
+              return function() {
+                return data = arguments[0];
+              };
+            })(),
+            lineno: 183
+          }));
+          __iced_deferrals._fulfill();
+        });
+      })(this)((function(_this) {
+        return function() {
+          return cb(data.indexOf(root.toLowerCase()) >= 0);
+        };
+      })(this));
     };
 
-    Stampery.prototype._getBTCtx = function(txid) {
+    Stampery.prototype._getBTCtx = function(txid, cb) {
       return request("https://api.blockcypher.com/v1/btc/main/txs/" + txid, function(err, res, body) {
-        if (err || !body || !JSON.parse(body).data_hex) {
+        var tx;
+        if (err || !body || !JSON.parse(body).outputs) {
+          console.error('ERR-', JSON.parse(body));
           throw new Error('BTC explorer error');
         }
-        return JSON.parse(body).outputs.find(function(e) {
-          return e.data_hex && e.data_hex;
+        tx = JSON.parse(body).outputs.find(function(e) {
+          return e.data_hex != null;
         });
+        return cb(tx.data_hex);
       });
     };
 
-    Stampery.prototype._getETHtx = function(txid) {
+    Stampery.prototype._getETHtx = function(txid, cb) {
       return request("https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=" + txid, function(err, res, body) {
         if (err || !body || !JSON.parse(body).result) {
           throw new Error('ETH explorer error');
         }
-        console.log(body);
-        return JSON.parse(body).result.input;
+        return cb(JSON.parse(body).result.input);
       });
     };
 
