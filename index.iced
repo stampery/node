@@ -157,16 +157,17 @@ class Stampery
     if b > a
       [a, b] = [b, a]
     data = a + b
-    _sha3Hash data, cb
+    @_sha3Hash data, cb
 
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
     await @checkRootInChain proof[2], proof[3][0], proof[3][1], defer rootIsInChain
     cb siblingsAreOK and rootIsInChain
 
-  checkDataIntegrity : (data, proof) ->
+  checkDataIntegrity : (data, proof, cb) ->
     await @hash data, defer hash
-    @prove hash, proof
+    @prove hash, proof, defer valid
+    cb valid
 
   checkSiblings : (hash, siblings, root, cb) =>
     if siblings.length > 0

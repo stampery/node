@@ -408,7 +408,7 @@
         _ref = [b, a], a = _ref[0], b = _ref[1];
       }
       data = a + b;
-      return _sha3Hash(data, cb);
+      return this._sha3Hash(data, cb);
     };
 
     Stampery.prototype.prove = function(hash, proof, cb) {
@@ -456,8 +456,8 @@
       })(this));
     };
 
-    Stampery.prototype.checkDataIntegrity = function(data, proof) {
-      var hash, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+    Stampery.prototype.checkDataIntegrity = function(data, proof, cb) {
+      var hash, valid, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       (function(_this) {
@@ -479,7 +479,15 @@
         });
       })(this)((function(_this) {
         return function() {
-          return _this.prove(hash, proof);
+          _this.prove(hash, proof, __iced_deferrals.defer({
+            assign_fn: (function() {
+              return function() {
+                return valid = arguments[0];
+              };
+            })(),
+            lineno: 168
+          }));
+          return cb(valid);
         };
       })(this));
     };
@@ -504,7 +512,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 174
+              lineno: 175
             }));
             __iced_deferrals._fulfill();
           });
@@ -539,7 +547,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 183
+            lineno: 184
           }));
           __iced_deferrals._fulfill();
         });
@@ -554,7 +562,6 @@
       return request("https://api.blockcypher.com/v1/btc/main/txs/" + txid, function(err, res, body) {
         var tx;
         if (err || !body || !JSON.parse(body).outputs) {
-          console.error('ERR-', JSON.parse(body));
           throw new Error('BTC explorer error');
         }
         tx = JSON.parse(body).outputs.find(function(e) {
