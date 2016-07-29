@@ -35,7 +35,11 @@ class Stampery
       e
 
   constructor : (@clientSecret, @beta) ->
-    @clientId = @_hash('md5', @clientSecret).substring 0, 15
+    @clientId = crypto
+      .createHash('md5')
+      .update(@clientSecret)
+      .digest('hex')
+      .substring(0, 15)
 
     if @beta
       host = 'api-beta.stampery.com:4000'
@@ -58,9 +62,6 @@ class Stampery
     @rabbit.on 'error', (err) =>
       @emit 'error', err
       @_connectRabbit
-
-  _hash : (algo, data) =>
-    crypto.createHash(algo).update(data).digest 'hex'
 
   hash : (data, cb) ->
     if data instanceof stream

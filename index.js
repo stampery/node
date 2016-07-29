@@ -75,11 +75,10 @@
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
       this._sumSiblings = __bind(this._sumSiblings, this);
       this._auth = __bind(this._auth, this);
-      this._hash = __bind(this._hash, this);
       this._connectRabbit = __bind(this._connectRabbit, this);
       this._recursiveConvert = __bind(this._recursiveConvert, this);
       this._convertSiblingArray = __bind(this._convertSiblingArray, this);
-      this.clientId = this._hash('md5', this.clientSecret).substring(0, 15);
+      this.clientId = crypto.createHash('md5').update(this.clientSecret).digest('hex').substring(0, 15);
       if (this.beta) {
         host = 'api-beta.stampery.com:4000';
       } else {
@@ -110,7 +109,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 50
+                lineno: 54
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -128,7 +127,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 52
+                lineno: 56
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -148,10 +147,6 @@
           });
         };
       })(this));
-    };
-
-    Stampery.prototype._hash = function(algo, data) {
-      return crypto.createHash(algo).update(data).digest('hex');
     };
 
     Stampery.prototype.hash = function(data, cb) {
@@ -201,7 +196,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 87
+            lineno: 88
           }));
           __iced_deferrals._fulfill();
         });
@@ -249,7 +244,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 106
+              lineno: 107
             }));
             __iced_deferrals._fulfill();
           });
@@ -273,7 +268,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 110
+              lineno: 111
             }));
             __iced_deferrals._fulfill();
           });
@@ -304,7 +299,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 115
+              lineno: 116
             }));
             __iced_deferrals._fulfill();
           });
@@ -354,7 +349,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 142
+                lineno: 143
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -382,7 +377,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 146
+              lineno: 147
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -429,7 +424,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 163
+            lineno: 164
           }));
           __iced_deferrals._fulfill();
         });
@@ -447,7 +442,7 @@
                   return rootIsInChain = arguments[0];
                 };
               })(),
-              lineno: 164
+              lineno: 165
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -474,7 +469,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 168
+            lineno: 169
           }));
           __iced_deferrals._fulfill();
         });
@@ -486,7 +481,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 169
+            lineno: 170
           }));
           return cb(valid);
         };
@@ -513,7 +508,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 176
+              lineno: 177
             }));
             __iced_deferrals._fulfill();
           });
@@ -548,7 +543,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 185
+            lineno: 186
           }));
           __iced_deferrals._fulfill();
         });
