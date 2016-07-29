@@ -35,7 +35,7 @@ stampery = new Stampery 'yourSecretToken'
 
 stampery.on 'proof', (hash, proof) ->
   console.log "Received proof for #{hash}", proof
-  valid = stampery.prove hash, proof
+  await stampery.prove hash, proof, defer valid
   console.log 'Proof validity:', valid
 
 stampery.on 'ready', ->
