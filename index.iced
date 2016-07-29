@@ -59,7 +59,8 @@ class Stampery
       @emit 'error', err
       @_connectRabbit
 
-  _hash : (algo, data) -> crypto.createHash(algo).update(data).digest 'hex'
+  _hash : (algo, data) =>
+    crypto.createHash(algo).update(data).digest 'hex'
 
   hash : (data, cb) ->
     if data instanceof stream

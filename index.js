@@ -75,6 +75,7 @@
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
       this._sumSiblings = __bind(this._sumSiblings, this);
       this._auth = __bind(this._auth, this);
+      this._hash = __bind(this._hash, this);
       this._connectRabbit = __bind(this._connectRabbit, this);
       this._recursiveConvert = __bind(this._recursiveConvert, this);
       this._convertSiblingArray = __bind(this._convertSiblingArray, this);
@@ -200,7 +201,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 86
+            lineno: 87
           }));
           __iced_deferrals._fulfill();
         });
@@ -248,7 +249,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 105
+              lineno: 106
             }));
             __iced_deferrals._fulfill();
           });
@@ -272,7 +273,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 109
+              lineno: 110
             }));
             __iced_deferrals._fulfill();
           });
@@ -303,7 +304,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 114
+              lineno: 115
             }));
             __iced_deferrals._fulfill();
           });
@@ -353,7 +354,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 141
+                lineno: 142
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -381,7 +382,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 145
+              lineno: 146
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -428,7 +429,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 162
+            lineno: 163
           }));
           __iced_deferrals._fulfill();
         });
@@ -446,7 +447,7 @@
                   return rootIsInChain = arguments[0];
                 };
               })(),
-              lineno: 163
+              lineno: 164
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -473,7 +474,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 167
+            lineno: 168
           }));
           __iced_deferrals._fulfill();
         });
@@ -485,7 +486,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 168
+            lineno: 169
           }));
           return cb(valid);
         };
@@ -512,7 +513,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 175
+              lineno: 176
             }));
             __iced_deferrals._fulfill();
           });
@@ -547,7 +548,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 184
+            lineno: 185
           }));
           __iced_deferrals._fulfill();
         });
