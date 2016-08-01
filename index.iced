@@ -176,7 +176,8 @@ class Stampery
       head = siblings[0]
       tail = siblings.slice 1
       await @_merkleMixer hash, head, defer hash
-      cb @checkSiblings hash, tail, root, cb
+      await @checkSiblings hash, tail, root, (res) ->
+        cb res
     else
       cb hash is root
 

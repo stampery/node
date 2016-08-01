@@ -514,7 +514,17 @@
           });
         })(this)((function(_this) {
           return function() {
-            return __iced_k(cb(_this.checkSiblings(hash, tail, root, cb)));
+            (function(__iced_k) {
+              __iced_deferrals = new iced.Deferrals(__iced_k, {
+                parent: ___iced_passed_deferral,
+                filename: "./index.iced",
+                funcname: "Stampery.checkSiblings"
+              });
+              _this.checkSiblings(hash, tail, root, function(res) {
+                return cb(res);
+              });
+              __iced_deferrals._fulfill();
+            })(__iced_k);
           };
         })(this));
       } else {
@@ -543,7 +553,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 186
+            lineno: 187
           }));
           __iced_deferrals._fulfill();
         });

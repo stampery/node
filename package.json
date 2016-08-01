@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
   "main": "index.js",
   "keywords": [
@@ -21,7 +21,7 @@
     "amqplib": "^0.4.1",
     "iced-runtime": "^1.0.2",
     "msgpack": "^1.0.2",
-    "msgpackrpc": "stampery/msgpackrpc",
+    "msgpackrpc": "^1.1.0",
     "request": "^2.72.0",
     "retry": "^0.8.0",
     "rocksolidsocket": "^1.0.0",
@@ -30,6 +30,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/stampery/node.git"
+  },
+  "scripts": {
+    "build": "grunt"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
