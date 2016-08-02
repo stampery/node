@@ -19,21 +19,6 @@ class Stampery
   ethSiblings: {}
   authed: false
 
-  _convertSiblingArray : (siblings) =>
-    if siblings is ''
-      []
-    else
-      siblings.map (v, i) ->
-        v.toString()
-
-  _recursiveConvert : (proof) =>
-    proof.map (e) =>
-      if e instanceof Buffer
-        e = e.toString 'utf8'
-      else if e instanceof Array
-        e = @_recursiveConvert e
-      e
-
   constructor : (@clientSecret, @beta) ->
     @clientId = crypto
       .createHash('md5')
@@ -50,6 +35,21 @@ class Stampery
     @rpc = new MsgpackRPC 'stampery.3', sock
     @_connectRabbit()
 
+  _convertSiblingArray : (siblings) =>
+    if siblings is ''
+      []
+    else
+      siblings.map (v, i) ->
+        v.toString()
+
+  _recursiveConvert : (proof) =>
+    proof.map (e) =>
+      if e instanceof Buffer
+        e = e.toString 'utf8'
+      else if e instanceof Array
+        e = @_recursiveConvert e
+      e
+
   _connectRabbit : () =>
     if @beta
       await amqp.connect 'amqp://consumer:9FBln3UxOgwgLZtYvResNXE7@young-squirrel.rmq.cloudamqp.com/beta', defer err, @rabbit
@@ -62,14 +62,6 @@ class Stampery
     @rabbit.on 'error', (err) =>
       @emit 'error', err
       @_connectRabbit
-
-  hash : (data, cb) ->
-    if data instanceof stream
-      @_hashFile data, cb
-    else
-      sha3 = new (SHA3.SHA3Hash)()
-      sha3.update data
-      cb sha3.digest('hex').toUpperCase()
 
   _sha3Hash: (stringToHash, cb) ->
     hash = new (SHA3.SHA3Hash)()
@@ -90,27 +82,6 @@ class Stampery
     console.log "[RPC] Auth: ", err, res
     return @emit 'error', err if err
     cb true
-
-  calculateProof: (hash, siblings, cb) ->
-    lastComputedleaf = hash
-    for idx of siblings
-      sibling = siblings[idx]
-      console.log "[SIBLINGS] Calculating sibling #{idx}", lastComputedleaf, sibling
-      @_sumSiblings lastComputedleaf, sibling, (sum) ->
-        console.log "[SIBLINGS] Calculated #{sum}"
-        lastComputedleaf = sum
-
-    cb lastComputedleaf
-
-  _sumSiblings: (leaf1, leaf2, cb) =>
-    if parseInt(leaf1, 16) > parseInt(leaf2, 16)
-      console.log "[SIBLINGS] Leaf1 is bigger than Leaf2"
-      await @_sha3Hash "#{leaf1}#{leaf2}", defer hash
-      cb hash
-    else
-      console.log "[SIBLINGS] Leaf2 is bigger than Leaf1"
-      await @_sha3Hash "#{leaf2}#{leaf1}", defer hash
-      cb hash
 
   _handleQueueConsumingForHash: (queue) =>
     if @rabbit
@@ -138,28 +109,25 @@ class Stampery
     else
       @emit 'error', "Error binding to #{hash}-clnt"
 
-  stamp : (hash) ->
-    console.log "Stamping #{hash}"
-    unless @authed
-      await @_auth defer @authed
-    hash = hash.toUpperCase()
-    console.log "Let's stamp #{hash}"
-    return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
-    await @rpc.invoke 'stamp', [hash], defer err, res
-    return @emit 'error', 'Not authenticated' if !@authed
-    console.log "[API] Received response: ", res
-    if err
-      console.log "[RPC] Error: #{err}"
-      @emit 'error', err
-
-  receiveMissedProofs: () =>
-    @_handleQueueConsumingForHash @clientId
-
   _merkleMixer : (a, b, cb) =>
     if b > a
       [a, b] = [b, a]
     data = a + b
     @_sha3Hash data, cb
+
+  _getBTCtx : (txid, cb) =>
+    request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) =>
+      if err or !body or !JSON.parse(body).outputs
+        @emit 'error', 'BTC explorer error'
+      tx = JSON.parse(body).outputs.find (e) ->
+        e.data_hex?
+      cb tx.data_hex
+
+  _getETHtx : (txid, cb) =>
+    request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) =>
+      if err or !body or !JSON.parse(body).result
+        @emit 'error', 'ETH explorer error'
+      cb JSON.parse(body).result.input
 
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
@@ -188,22 +156,33 @@ class Stampery
     await f txid, defer data
     cb data.indexOf(root.toLowerCase()) >= 0
 
-  _getBTCtx : (txid, cb) ->
-    request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) ->
-      if err or !body or !JSON.parse(body).outputs
-        throw new Error 'BTC explorer error'
-      tx = JSON.parse(body).outputs.find (e) ->
-        e.data_hex?
-      cb tx.data_hex
+  receiveMissedProofs: () =>
+    @_handleQueueConsumingForHash @clientId
 
-  _getETHtx : (txid, cb) ->
-    request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) ->
-      if err or !body or !JSON.parse(body).result
-        throw new Error 'ETH explorer error'
-      cb JSON.parse(body).result.input
 
+  stamp : (hash) ->
+    console.log "Stamping #{hash}"
+    unless @authed
+      await @_auth defer @authed
+    hash = hash.toUpperCase()
+    console.log "Let's stamp #{hash}"
+    return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
+    await @rpc.invoke 'stamp', [hash], defer err, res
+    return @emit 'error', 'Not authenticated' if !@authed
+    console.log "[API] Received response: ", res
+    if err
+      console.log "[RPC] Error: #{err}"
+      @emit 'error', err
+
+  hash : (data, cb) ->
+    if data instanceof stream
+      @_hashFile data, cb
+    else
+      sha3 = new (SHA3.SHA3Hash)()
+      sha3.update data
+      cb sha3.digest('hex').toUpperCase()
 
 util.inherits Stampery, EventEmitter
 
-
 module.exports = Stampery
+
