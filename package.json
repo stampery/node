@@ -21,7 +21,7 @@
     "amqplib": "^0.4.1",
     "iced-runtime": "^1.0.2",
     "msgpack": "^1.0.2",
-    "msgpackrpc": "^1.1.0",
+    "msgpackrpc": "^1.2.0",
     "request": "^2.72.0",
     "retry": "^0.8.0",
     "rocksolidsocket": "^1.0.0",
