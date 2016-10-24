@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 stream = require 'stream'
-SHA3 = require 'sha3'
+SHA3 = require 'js-sha3'
 RockSolidSocket = require 'rocksolidsocket'
 MsgpackRPC = require 'msgpackrpc'
 amqp = require 'amqplib/callback_api'
@@ -64,15 +64,13 @@ class Stampery
       @_connectRabbit
 
   _sha3Hash: (stringToHash, cb) ->
-    hash = new (SHA3.SHA3Hash)()
-    hash.update stringToHash
-    cb hash.digest 'hex'
+    cb SHA3.sha3_512(stringToHash)
 
   _hashFile : (fd, cb) ->
-    hash = new (SHA3.SHA3Hash)()
+    hash = new SHA3.sha3_512.create()
 
     fd.on 'end', () ->
-      cb hash.digest 'hex'
+      cb hash.hex()
 
     fd.on 'data', (data) ->
       hash.update data
@@ -178,11 +176,9 @@ class Stampery
     if data instanceof stream
       @_hashFile data, cb
     else
-      sha3 = new (SHA3.SHA3Hash)()
-      sha3.update data
-      cb sha3.digest('hex').toUpperCase()
+      @_sha3Hash data, (hash) ->
+        cb hash.toUpperCase()
 
 util.inherits Stampery, EventEmitter
 
 module.exports = Stampery
-

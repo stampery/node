@@ -9,7 +9,7 @@
 
   stream = require('stream');
 
-  SHA3 = require('sha3');
+  SHA3 = require('js-sha3');
 
   RockSolidSocket = require('rocksolidsocket');
 
@@ -151,17 +151,14 @@
     };
 
     Stampery.prototype._sha3Hash = function(stringToHash, cb) {
-      var hash;
-      hash = new SHA3.SHA3Hash();
-      hash.update(stringToHash);
-      return cb(hash.digest('hex'));
+      return cb(SHA3.sha3_512(stringToHash));
     };
 
     Stampery.prototype._hashFile = function(fd, cb) {
       var hash;
-      hash = new SHA3.SHA3Hash();
+      hash = new SHA3.sha3_512.create();
       fd.on('end', function() {
-        return cb(hash.digest('hex'));
+        return cb(hash.hex());
       });
       return fd.on('data', function(data) {
         return hash.update(data);
@@ -186,7 +183,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 80
+            lineno: 78
           }));
           __iced_deferrals._fulfill();
         });
@@ -220,7 +217,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 87
+              lineno: 85
             }));
             __iced_deferrals._fulfill();
           });
@@ -302,7 +299,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 132
+            lineno: 130
           }));
           __iced_deferrals._fulfill();
         });
@@ -320,7 +317,7 @@
                   return rootIsInChain = arguments[0];
                 };
               })(),
-              lineno: 133
+              lineno: 131
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -347,7 +344,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 137
+            lineno: 135
           }));
           __iced_deferrals._fulfill();
         });
@@ -359,7 +356,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 138
+            lineno: 136
           }));
           return cb(valid);
         };
@@ -386,7 +383,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 145
+              lineno: 143
             }));
             __iced_deferrals._fulfill();
           });
@@ -431,7 +428,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 155
+            lineno: 153
           }));
           __iced_deferrals._fulfill();
         });
@@ -466,7 +463,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 165
+                lineno: 163
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -494,7 +491,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 169
+              lineno: 167
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -512,13 +509,12 @@
     };
 
     Stampery.prototype.hash = function(data, cb) {
-      var sha3;
       if (data instanceof stream) {
         return this._hashFile(data, cb);
       } else {
-        sha3 = new SHA3.SHA3Hash();
-        sha3.update(data);
-        return cb(sha3.digest('hex').toUpperCase());
+        return this._sha3Hash(data, function(hash) {
+          return cb(hash.toUpperCase());
+        });
       }
     };
 
