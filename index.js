@@ -48,8 +48,6 @@
       this.checkRootInChain = __bind(this.checkRootInChain, this);
       this.checkSiblings = __bind(this.checkSiblings, this);
       this.prove = __bind(this.prove, this);
-      this._getETHtx = __bind(this._getETHtx, this);
-      this._getBTCtx = __bind(this._getBTCtx, this);
       this._merkleMixer = __bind(this._merkleMixer, this);
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
       this._auth = __bind(this._auth, this);
@@ -256,34 +254,8 @@
       return this._sha3Hash(data, cb);
     };
 
-    Stampery.prototype._getBTCtx = function(txid, cb) {
-      return request("https://api.blockcypher.com/v1/btc/main/txs/" + txid, (function(_this) {
-        return function(err, res, body) {
-          var tx;
-          if (err || !body || !JSON.parse(body).outputs) {
-            _this.emit('error', 'BTC explorer error');
-          }
-          tx = JSON.parse(body).outputs.find(function(e) {
-            return e.data_hex != null;
-          });
-          return cb(tx.data_hex);
-        };
-      })(this));
-    };
-
-    Stampery.prototype._getETHtx = function(txid, cb) {
-      return request("https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=" + txid, (function(_this) {
-        return function(err, res, body) {
-          if (err || !body || !JSON.parse(body).result) {
-            _this.emit('error', 'ETH explorer error');
-          }
-          return cb(JSON.parse(body).result.input);
-        };
-      })(this));
-    };
-
     Stampery.prototype.prove = function(hash, proof, cb) {
-      var rootIsInChain, siblingsAreOK, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      var siblingsAreOK, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       (function(_this) {
@@ -299,30 +271,13 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 130
+            lineno: 116
           }));
           __iced_deferrals._fulfill();
         });
       })(this)((function(_this) {
         return function() {
-          (function(__iced_k) {
-            __iced_deferrals = new iced.Deferrals(__iced_k, {
-              parent: ___iced_passed_deferral,
-              filename: "./index.iced",
-              funcname: "Stampery.prove"
-            });
-            _this.checkRootInChain(proof[2], proof[3][0], proof[3][1], __iced_deferrals.defer({
-              assign_fn: (function() {
-                return function() {
-                  return rootIsInChain = arguments[0];
-                };
-              })(),
-              lineno: 131
-            }));
-            __iced_deferrals._fulfill();
-          })(function() {
-            return cb(siblingsAreOK && rootIsInChain);
-          });
+          return cb(siblingsAreOK);
         };
       })(this));
     };
@@ -344,7 +299,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 135
+            lineno: 120
           }));
           __iced_deferrals._fulfill();
         });
@@ -356,7 +311,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 136
+            lineno: 121
           }));
           return cb(valid);
         };
@@ -383,7 +338,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 143
+              lineno: 128
             }));
             __iced_deferrals._fulfill();
           });
@@ -428,7 +383,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 153
+            lineno: 138
           }));
           __iced_deferrals._fulfill();
         });
@@ -463,7 +418,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 163
+                lineno: 148
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -491,7 +446,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 167
+              lineno: 152
             }));
             __iced_deferrals._fulfill();
           })(function() {

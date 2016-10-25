@@ -113,24 +113,9 @@ class Stampery
     data = a + b
     @_sha3Hash data, cb
 
-  _getBTCtx : (txid, cb) =>
-    request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) =>
-      if err or !body or !JSON.parse(body).outputs
-        @emit 'error', 'BTC explorer error'
-      tx = JSON.parse(body).outputs.find (e) ->
-        e.data_hex?
-      cb tx.data_hex
-
-  _getETHtx : (txid, cb) =>
-    request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) =>
-      if err or !body or !JSON.parse(body).result
-        @emit 'error', 'ETH explorer error'
-      cb JSON.parse(body).result.input
-
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
-    await @checkRootInChain proof[2], proof[3][0], proof[3][1], defer rootIsInChain
-    cb siblingsAreOK and rootIsInChain
+    cb siblingsAreOK
 
   checkDataIntegrity : (data, proof, cb) ->
     await @hash data, defer hash
