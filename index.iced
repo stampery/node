@@ -65,8 +65,9 @@ class Stampery
 
   _sha3Hash: (stringToHash, cb) ->
     hash = new (SHA3.SHA3Hash)()
+    console.log 'Hashing', stringToHash
     hash.update stringToHash
-    cb hash.digest 'hex'
+    cb hash.digest('hex').toUpperCase()
 
   _hashFile : (fd, cb) ->
     hash = new (SHA3.SHA3Hash)()
@@ -144,9 +145,12 @@ class Stampery
       head = siblings[0]
       tail = siblings.slice 1
       await @_merkleMixer hash, head, defer hash
+      console.log 'Resulting in', hash
       await @checkSiblings hash, tail, root, (res) ->
         cb res
     else
+      console.log 'A_Root', hash
+      console.log 'B_Root', root
       cb hash is root
 
   checkRootInChain : (root, chain, txid, cb) =>

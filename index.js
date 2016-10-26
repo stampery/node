@@ -153,8 +153,9 @@
     Stampery.prototype._sha3Hash = function(stringToHash, cb) {
       var hash;
       hash = new SHA3.SHA3Hash();
+      console.log('Hashing', stringToHash);
       hash.update(stringToHash);
-      return cb(hash.digest('hex'));
+      return cb(hash.digest('hex').toUpperCase());
     };
 
     Stampery.prototype._hashFile = function(fd, cb) {
@@ -186,7 +187,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 80
+            lineno: 81
           }));
           __iced_deferrals._fulfill();
         });
@@ -220,7 +221,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 87
+              lineno: 88
             }));
             __iced_deferrals._fulfill();
           });
@@ -302,7 +303,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 132
+            lineno: 133
           }));
           __iced_deferrals._fulfill();
         });
@@ -320,7 +321,7 @@
                   return rootIsInChain = arguments[0];
                 };
               })(),
-              lineno: 133
+              lineno: 134
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -347,7 +348,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 137
+            lineno: 138
           }));
           __iced_deferrals._fulfill();
         });
@@ -359,7 +360,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 138
+            lineno: 139
           }));
           return cb(valid);
         };
@@ -386,12 +387,13 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 145
+              lineno: 146
             }));
             __iced_deferrals._fulfill();
           });
         })(this)((function(_this) {
           return function() {
+            console.log('Resulting in', hash);
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
@@ -406,6 +408,8 @@
           };
         })(this));
       } else {
+        console.log('A_Root', hash);
+        console.log('B_Root', root);
         return __iced_k(cb(hash === root));
       }
     };
@@ -431,7 +435,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 155
+            lineno: 159
           }));
           __iced_deferrals._fulfill();
         });
@@ -466,7 +470,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 165
+                lineno: 169
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -494,7 +498,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 169
+              lineno: 173
             }));
             __iced_deferrals._fulfill();
           })(function() {

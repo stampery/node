@@ -1,6 +1,6 @@
 Stampery = require './index'
 
-stampery = new Stampery '2d4cdee7-38b0-4a66-da87-c1ab05b43768'
+stampery = new Stampery '4d49c0ca-b559-44a2-f5b9-5984f172e689'
 
 stampery.on 'proof', (hash, proof) ->
   console.log "Received proof for #{hash}", proof
