@@ -21,6 +21,7 @@ Seamlessly integrate industrial-scale data certification into your own NodeJS ap
 ```javascript
 Stampery = require('stampery');
 
+// Sign up and get your secret token at https://api-dashboard.stampery.com
 stampery = new Stampery('yourSecretToken')
 
 stampery.on('proof', function(hash, proof) {
@@ -43,6 +44,7 @@ Here is the same example, just using our beloved IcedCoffeeScript:
 ```coffeescript
 Stampery = require 'stampery'
 
+# Sign up and get your secret token at https://api-dashboard.stampery.com
 stampery = new Stampery 'yourSecretToken'
 
 stampery.on 'proof', (hash, proof) ->
@@ -66,7 +68,18 @@ stampery.on 'ready', ->
 
 ## Feedback
 
+<<<<<<< HEAD
 Ping us at [support@stampery.com](mailto:support@stampery.com) and we will more than happy to help you! 😃
+=======
+# Official implementations
+- [NodeJS](https://github.com/stampery/node)
+- [PHP](https://github.com/stampery/php)
+- [ruby](https://github.com/stampery/ruby)
+- [Python](https://github.com/stampery/python)
+- [Elixir](https://github.com/stampery/elixir)
+- [Java](https://github.com/stampery/java)
+- [Go](https://github.com/stampery/go)
+>>>>>>> b04e57f62f8c9d1235361dbc116eb314e6383ba9
 
 
 ## License

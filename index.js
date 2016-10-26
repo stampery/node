@@ -1,5 +1,5 @@
 (function() {
-  var EventEmitter, MsgpackRPC, RockSolidSocket, SHA3, Stampery, amqp, amqpDomain, crypto, domain, iced, msgpack, request, stream, util, __iced_k, __iced_k_noop,
+  var EventEmitter, MsgpackRPC, RockSolidSocket, SHA3, Stampery, amqp, amqpDomain, crypto, domain, iced, msgpack, pjson, request, stream, util, __iced_k, __iced_k_noop,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   iced = require('iced-runtime');
@@ -9,7 +9,7 @@
 
   stream = require('stream');
 
-  SHA3 = require('sha3');
+  SHA3 = require('js-sha3');
 
   RockSolidSocket = require('rocksolidsocket');
 
@@ -26,6 +26,8 @@
   request = require('request');
 
   EventEmitter = require('events').EventEmitter;
+
+  pjson = require('./package.json');
 
   amqpDomain = domain.create();
 
@@ -48,8 +50,6 @@
       this.checkRootInChain = __bind(this.checkRootInChain, this);
       this.checkSiblings = __bind(this.checkSiblings, this);
       this.prove = __bind(this.prove, this);
-      this._getETHtx = __bind(this._getETHtx, this);
-      this._getBTCtx = __bind(this._getBTCtx, this);
       this._merkleMixer = __bind(this._merkleMixer, this);
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
       this._auth = __bind(this._auth, this);
@@ -110,7 +110,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 54
+                lineno: 56
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -128,7 +128,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 56
+                lineno: 58
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -151,18 +151,14 @@
     };
 
     Stampery.prototype._sha3Hash = function(stringToHash, cb) {
-      var hash;
-      hash = new SHA3.SHA3Hash();
-      console.log('Hashing', stringToHash);
-      hash.update(stringToHash);
-      return cb(hash.digest('hex').toUpperCase());
+      return cb(SHA3.sha3_512(stringToHash));
     };
 
     Stampery.prototype._hashFile = function(fd, cb) {
       var hash;
-      hash = new SHA3.SHA3Hash();
+      hash = new SHA3.sha3_512.create();
       fd.on('end', function() {
-        return cb(hash.digest('hex'));
+        return cb(hash.hex());
       });
       return fd.on('data', function(data) {
         return hash.update(data);
@@ -180,14 +176,14 @@
             filename: "./index.iced",
             funcname: "Stampery._auth"
           });
-          _this.rpc.invoke('auth', [_this.clientId, _this.clientSecret], __iced_deferrals.defer({
+          _this.rpc.invoke('auth', [_this.clientId, _this.clientSecret, "nodejs-" + pjson.version], __iced_deferrals.defer({
             assign_fn: (function() {
               return function() {
                 err = arguments[0];
                 return res = arguments[1];
               };
             })(),
-            lineno: 81
+            lineno: 80
           }));
           __iced_deferrals._fulfill();
         });
@@ -221,7 +217,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 88
+              lineno: 87
             }));
             __iced_deferrals._fulfill();
           });
@@ -260,34 +256,8 @@
       return this._sha3Hash(data, cb);
     };
 
-    Stampery.prototype._getBTCtx = function(txid, cb) {
-      return request("https://api.blockcypher.com/v1/btc/main/txs/" + txid, (function(_this) {
-        return function(err, res, body) {
-          var tx;
-          if (err || !body || !JSON.parse(body).outputs) {
-            _this.emit('error', 'BTC explorer error');
-          }
-          tx = JSON.parse(body).outputs.find(function(e) {
-            return e.data_hex != null;
-          });
-          return cb(tx.data_hex);
-        };
-      })(this));
-    };
-
-    Stampery.prototype._getETHtx = function(txid, cb) {
-      return request("https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=" + txid, (function(_this) {
-        return function(err, res, body) {
-          if (err || !body || !JSON.parse(body).result) {
-            _this.emit('error', 'ETH explorer error');
-          }
-          return cb(JSON.parse(body).result.input);
-        };
-      })(this));
-    };
-
     Stampery.prototype.prove = function(hash, proof, cb) {
-      var rootIsInChain, siblingsAreOK, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      var siblingsAreOK, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
       (function(_this) {
@@ -303,30 +273,13 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 133
+            lineno: 118
           }));
           __iced_deferrals._fulfill();
         });
       })(this)((function(_this) {
         return function() {
-          (function(__iced_k) {
-            __iced_deferrals = new iced.Deferrals(__iced_k, {
-              parent: ___iced_passed_deferral,
-              filename: "./index.iced",
-              funcname: "Stampery.prove"
-            });
-            _this.checkRootInChain(proof[2], proof[3][0], proof[3][1], __iced_deferrals.defer({
-              assign_fn: (function() {
-                return function() {
-                  return rootIsInChain = arguments[0];
-                };
-              })(),
-              lineno: 134
-            }));
-            __iced_deferrals._fulfill();
-          })(function() {
-            return cb(siblingsAreOK && rootIsInChain);
-          });
+          return cb(siblingsAreOK);
         };
       })(this));
     };
@@ -348,7 +301,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 138
+            lineno: 122
           }));
           __iced_deferrals._fulfill();
         });
@@ -360,7 +313,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 139
+            lineno: 123
           }));
           return cb(valid);
         };
@@ -387,7 +340,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 146
+              lineno: 130
             }));
             __iced_deferrals._fulfill();
           });
@@ -435,7 +388,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 159
+            lineno: 143
           }));
           __iced_deferrals._fulfill();
         });
@@ -470,7 +423,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 169
+                lineno: 153
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -498,7 +451,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 173
+              lineno: 157
             }));
             __iced_deferrals._fulfill();
           })(function() {
@@ -516,13 +469,12 @@
     };
 
     Stampery.prototype.hash = function(data, cb) {
-      var sha3;
       if (data instanceof stream) {
         return this._hashFile(data, cb);
       } else {
-        sha3 = new SHA3.SHA3Hash();
-        sha3.update(data);
-        return cb(sha3.digest('hex').toUpperCase());
+        return this._sha3Hash(data, function(hash) {
+          return cb(hash.toUpperCase());
+        });
       }
     };
 

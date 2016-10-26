@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 stream = require 'stream'
-SHA3 = require 'sha3'
+SHA3 = require 'js-sha3'
 RockSolidSocket = require 'rocksolidsocket'
 MsgpackRPC = require 'msgpackrpc'
 amqp = require 'amqplib/callback_api'
@@ -9,6 +9,8 @@ domain = require 'domain'
 util = require 'util'
 request = require 'request'
 EventEmitter = require('events').EventEmitter
+pjson = require './package.json'
+
 
 amqpDomain = domain.create()
 amqpDomain.on 'error', (err) =>
@@ -64,22 +66,19 @@ class Stampery
       @_connectRabbit
 
   _sha3Hash: (stringToHash, cb) ->
-    hash = new (SHA3.SHA3Hash)()
-    console.log 'Hashing', stringToHash
-    hash.update stringToHash
-    cb hash.digest('hex').toUpperCase()
+    cb SHA3.sha3_512(stringToHash)
 
   _hashFile : (fd, cb) ->
-    hash = new (SHA3.SHA3Hash)()
+    hash = new SHA3.sha3_512.create()
 
     fd.on 'end', () ->
-      cb hash.digest 'hex'
+      cb hash.hex()
 
     fd.on 'data', (data) ->
       hash.update data
 
   _auth : (cb) =>
-    await @rpc.invoke 'auth', [@clientId, @clientSecret], defer err, res
+    await @rpc.invoke 'auth', [@clientId, @clientSecret, "nodejs-" + pjson.version ], defer err, res
     console.log "[RPC] Auth: ", err, res
     return @emit 'error', err if err
     cb true
@@ -116,24 +115,9 @@ class Stampery
     data = a + b
     @_sha3Hash data, cb
 
-  _getBTCtx : (txid, cb) =>
-    request "https://api.blockcypher.com/v1/btc/main/txs/#{txid}", (err, res, body) =>
-      if err or !body or !JSON.parse(body).outputs
-        @emit 'error', 'BTC explorer error'
-      tx = JSON.parse(body).outputs.find (e) ->
-        e.data_hex?
-      cb tx.data_hex
-
-  _getETHtx : (txid, cb) =>
-    request "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=#{txid}", (err, res, body) =>
-      if err or !body or !JSON.parse(body).result
-        @emit 'error', 'ETH explorer error'
-      cb JSON.parse(body).result.input
-
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
-    await @checkRootInChain proof[2], proof[3][0], proof[3][1], defer rootIsInChain
-    cb siblingsAreOK and rootIsInChain
+    cb siblingsAreOK
 
   checkDataIntegrity : (data, proof, cb) ->
     await @hash data, defer hash
@@ -182,11 +166,9 @@ class Stampery
     if data instanceof stream
       @_hashFile data, cb
     else
-      sha3 = new (SHA3.SHA3Hash)()
-      sha3.update data
-      cb sha3.digest('hex').toUpperCase()
+      @_sha3Hash data, (hash) ->
+        cb hash.toUpperCase()
 
 util.inherits Stampery, EventEmitter
 
 module.exports = Stampery
-
