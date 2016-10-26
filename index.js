@@ -1,5 +1,5 @@
 (function() {
-  var EventEmitter, MsgpackRPC, RockSolidSocket, SHA3, Stampery, amqp, amqpDomain, crypto, domain, iced, msgpack, request, stream, util, __iced_k, __iced_k_noop,
+  var EventEmitter, MsgpackRPC, RockSolidSocket, SHA3, Stampery, amqp, amqpDomain, crypto, domain, iced, msgpack, pjson, request, stream, util, __iced_k, __iced_k_noop,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   iced = require('iced-runtime');
@@ -26,6 +26,8 @@
   request = require('request');
 
   EventEmitter = require('events').EventEmitter;
+
+  pjson = require('./package.json');
 
   amqpDomain = domain.create();
 
@@ -108,7 +110,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 54
+                lineno: 56
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -126,7 +128,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 56
+                lineno: 58
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -174,14 +176,14 @@
             filename: "./index.iced",
             funcname: "Stampery._auth"
           });
-          _this.rpc.invoke('auth', [_this.clientId, _this.clientSecret], __iced_deferrals.defer({
+          _this.rpc.invoke('auth', [_this.clientId, _this.clientSecret, "nodejs-" + pjson.version], __iced_deferrals.defer({
             assign_fn: (function() {
               return function() {
                 err = arguments[0];
                 return res = arguments[1];
               };
             })(),
-            lineno: 78
+            lineno: 80
           }));
           __iced_deferrals._fulfill();
         });
@@ -215,7 +217,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 85
+              lineno: 87
             }));
             __iced_deferrals._fulfill();
           });
@@ -271,7 +273,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 116
+            lineno: 118
           }));
           __iced_deferrals._fulfill();
         });
@@ -299,7 +301,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 120
+            lineno: 122
           }));
           __iced_deferrals._fulfill();
         });
@@ -311,7 +313,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 121
+            lineno: 123
           }));
           return cb(valid);
         };
@@ -338,7 +340,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 128
+              lineno: 130
             }));
             __iced_deferrals._fulfill();
           });
@@ -383,7 +385,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 138
+            lineno: 140
           }));
           __iced_deferrals._fulfill();
         });
@@ -418,7 +420,7 @@
                     return __slot_1.authed = arguments[0];
                   };
                 })(_this),
-                lineno: 148
+                lineno: 150
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -446,7 +448,7 @@
                   return res = arguments[1];
                 };
               })(),
-              lineno: 152
+              lineno: 154
             }));
             __iced_deferrals._fulfill();
           })(function() {

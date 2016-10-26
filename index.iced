@@ -9,6 +9,8 @@ domain = require 'domain'
 util = require 'util'
 request = require 'request'
 EventEmitter = require('events').EventEmitter
+pjson = require './package.json'
+
 
 amqpDomain = domain.create()
 amqpDomain.on 'error', (err) =>
@@ -76,7 +78,7 @@ class Stampery
       hash.update data
 
   _auth : (cb) =>
-    await @rpc.invoke 'auth', [@clientId, @clientSecret], defer err, res
+    await @rpc.invoke 'auth', [@clientId, @clientSecret, "nodejs-" + pjson.version ], defer err, res
     console.log "[RPC] Auth: ", err, res
     return @emit 'error', err if err
     cb true
