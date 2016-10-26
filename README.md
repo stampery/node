@@ -9,6 +9,7 @@ Stampery
 ```javascript
 Stampery = require('stampery');
 
+// Sign up and get your secret token at https://api-dashboard.stampery.com
 stampery = new Stampery('yourSecretToken')
 
 stampery.on('proof', function(hash, proof) {
@@ -31,6 +32,7 @@ Here is the same example, just using our beloved IcedCoffeeScript:
 ```coffeescript
 Stampery = require 'stampery'
 
+# Sign up and get your secret token at https://api-dashboard.stampery.com
 stampery = new Stampery 'yourSecretToken'
 
 stampery.on 'proof', (hash, proof) ->
