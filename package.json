@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "3.4.0",
+  "version": "3.4.3",
   "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
   "main": "index.js",
   "keywords": [
@@ -11,11 +11,14 @@
     "notary",
     "bitcoin"
   ],
-  "author": "Luis Iván Cuende <luis@stampery.co>",
-  "contributors": {
-    "name": "Adán Sánchez de Pedro Crespo",
-    "email": "adan@stampery.co"
-  },
+  "author": "Luis Iván Cuende",
+  "contributors": [{
+    "name": "Adán Sánchez de Pedro",
+    "email": "adan@stampery.com"
+  }, {
+    "name": "Johann Ortiz",
+    "email": "johann@stampery.com"
+  }],
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.4.1",

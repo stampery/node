@@ -68,10 +68,9 @@ stampery.on 'ready', ->
 
 ## Feedback
 
-<<<<<<< HEAD
 Ping us at [support@stampery.com](mailto:support@stampery.com) and we will more than happy to help you! 😃
-=======
-# Official implementations
+
+## Official implementations
 - [NodeJS](https://github.com/stampery/node)
 - [PHP](https://github.com/stampery/php)
 - [ruby](https://github.com/stampery/ruby)
@@ -79,8 +78,6 @@ Ping us at [support@stampery.com](mailto:support@stampery.com) and we will more 
 - [Elixir](https://github.com/stampery/elixir)
 - [Java](https://github.com/stampery/java)
 - [Go](https://github.com/stampery/go)
->>>>>>> b04e57f62f8c9d1235361dbc116eb314e6383ba9
-
 
 ## License
 
