@@ -35,22 +35,9 @@ class Stampery
 
     sock = new RockSolidSocket host
     @rpc = new MsgpackRPC 'stampery.3', sock
-    @_connectRabbit()
-
-  _convertSiblingArray : (siblings) =>
-    if siblings is ''
-      []
-    else
-      siblings.map (v, i) ->
-        v.toString()
-
-  _recursiveConvert : (proof) =>
-    proof.map (e) =>
-      if e instanceof Buffer
-        e = e.toString 'utf8'
-      else if e instanceof Array
-        e = @_recursiveConvert e
-      e
+    await @_auth defer @authed
+    if @authed
+      @_connectRabbit()
 
   _connectRabbit : () =>
     if @beta
@@ -58,12 +45,15 @@ class Stampery
     else
       await amqp.connect 'amqp://consumer:9FBln3UxOgwgLZtYvResNXE7@young-squirrel.rmq.cloudamqp.com/ukgmnhoi', defer err, @rabbit
     return console.log "[QUEUE] Error connecting #{err}" if err
-    console.log '[QUEUE] Connected to Rabbit!'
-    @emit 'ready'
-    amqpDomain.add @rabbit
-    @rabbit.on 'error', (err) =>
-      @emit 'error', err
-      @_connectRabbit
+    if @rabbit
+      console.log '[QUEUE] Connected to Rabbit!'
+      @emit 'ready'
+      amqpDomain.add @rabbit
+      @_handleQueueConsumingForHash @clientId
+      @rabbit.on 'error', (err) =>
+        @emit 'error', err
+        @_connectRabbit
+
 
   _sha3Hash: (stringToHash, cb) ->
     cb SHA3.sha3_512(stringToHash)
@@ -79,8 +69,10 @@ class Stampery
 
   _auth : (cb) =>
     await @rpc.invoke 'auth', [@clientId, @clientSecret, "nodejs-" + pjson.version ], defer err, res
-    console.log "[RPC] Auth: ", err, res
-    return @emit 'error', err if err
+    if err
+      @auth = false
+      @emit 'error', "Couldn't authenticate"
+      process.exit()
     cb true
 
   _handleQueueConsumingForHash: (queue) =>
@@ -88,7 +80,6 @@ class Stampery
       await @rabbit.createChannel defer err, @channel
       console.log "[QUEUE] Bound to #{queue}-clnt", err
       @channel.consume "#{queue}-clnt", (queueMsg) =>
-        console.log "[QUEUE] Received data!"
         # Nucleus response spec
         # [v, [sib], root, [chain, txid]]
         unpackedMsg = msgpack.unpack queueMsg.content
@@ -97,26 +88,41 @@ class Stampery
         if unpackedMsg[3][0] is 1 or unpackedMsg[3][0] is -1
           # Checking if the chain is Bitcoin
           console.log '[QUEUE] Received BTC proof for ' + hash
-          unpackedMsg[1] = (@ethSiblings[hash] or []).concat(unpackedMsg[1] or [])
         else if unpackedMsg[3][0] is 2 or unpackedMsg[3][0] is -2
           # Checking if the chain is Ethereum
           console.log '[QUEUE] Received ETH proof for ' + hash
-          @ethSiblings[hash] = @_convertSiblingArray(unpackedMsg[1])
-        # ACKing the queue message
+          # ACKing the queue message
         @channel.ack queueMsg
-        niceProof = @_recursiveConvert unpackedMsg
+        niceProof =  @_processProof unpackedMsg
         @emit 'proof', hash, niceProof
     else
       @emit 'error', "Error binding to #{hash}-clnt"
 
+  _processProof: (raw_proof) =>
+    {
+      'version': raw_proof[0]
+      'siblings': @_convertSiblingArray raw_proof[1]
+      'root': raw_proof[2].toString 'utf8'
+      'anchor':
+        'chain': raw_proof[3][0]
+        'tx': raw_proof[3][1].toString 'utf8'
+    }
+
+  _convertSiblingArray : (siblings) =>
+    if siblings is ''
+      []
+    else
+      siblings.map (v, i) ->
+        v.toString()
+
   _merkleMixer : (a, b, cb) =>
-    if b > a
+    if a > b
       [a, b] = [b, a]
     data = a + b
     @_sha3Hash data, cb
 
   prove : (hash, proof, cb) =>
-    await @checkSiblings hash, proof[1], proof[2], defer siblingsAreOK
+    await @checkSiblings hash, proof.siblings, proof.root, defer siblingsAreOK
     cb siblingsAreOK
 
   checkDataIntegrity : (data, proof, cb) ->
@@ -141,23 +147,14 @@ class Stampery
     await f txid, defer data
     cb data.indexOf(root.toLowerCase()) >= 0
 
-  receiveMissedProofs: () =>
-    @_handleQueueConsumingForHash @clientId
-
-
   stamp : (hash) ->
-    console.log "Stamping #{hash}"
-    unless @authed
-      await @_auth defer @authed
+    console.log "\nStamping \n#{hash}"
     hash = hash.toUpperCase()
-    console.log "Let's stamp #{hash}"
-    return setTimeout @stamp.bind(this, hash), 500 if not @rabbit
-    await @rpc.invoke 'stamp', [hash], defer err, res
-    return @emit 'error', 'Not authenticated' if !@authed
-    console.log "[API] Received response: ", res
-    if err
-      console.log "[RPC] Error: #{err}"
-      @emit 'error', err
+    @rpc.invoke 'stamp', [hash], (err, res) =>
+      console.log "[API] Received response: ", res
+      if err
+        console.log "[RPC] Error: #{err}"
+        @emit 'error', err
 
   hash : (data, cb) ->
     if data instanceof stream

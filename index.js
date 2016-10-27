@@ -43,19 +43,20 @@
     Stampery.prototype.authed = false;
 
     function Stampery(clientSecret, beta) {
-      var host, sock;
+      var host, sock, ___iced_passed_deferral, __iced_deferrals, __iced_k;
+      __iced_k = __iced_k_noop;
+      ___iced_passed_deferral = iced.findDeferral(arguments);
       this.clientSecret = clientSecret;
       this.beta = beta;
-      this.receiveMissedProofs = __bind(this.receiveMissedProofs, this);
       this.checkRootInChain = __bind(this.checkRootInChain, this);
       this.checkSiblings = __bind(this.checkSiblings, this);
       this.prove = __bind(this.prove, this);
       this._merkleMixer = __bind(this._merkleMixer, this);
+      this._convertSiblingArray = __bind(this._convertSiblingArray, this);
+      this._processProof = __bind(this._processProof, this);
       this._handleQueueConsumingForHash = __bind(this._handleQueueConsumingForHash, this);
       this._auth = __bind(this._auth, this);
       this._connectRabbit = __bind(this._connectRabbit, this);
-      this._recursiveConvert = __bind(this._recursiveConvert, this);
-      this._convertSiblingArray = __bind(this._convertSiblingArray, this);
       this.clientId = crypto.createHash('md5').update(this.clientSecret).digest('hex').substring(0, 15);
       if (this.beta) {
         host = 'api-beta.stampery.com:4000';
@@ -64,31 +65,31 @@
       }
       sock = new RockSolidSocket(host);
       this.rpc = new MsgpackRPC('stampery.3', sock);
-      this._connectRabbit();
-    }
-
-    Stampery.prototype._convertSiblingArray = function(siblings) {
-      if (siblings === '') {
-        return [];
-      } else {
-        return siblings.map(function(v, i) {
-          return v.toString();
+      (function(_this) {
+        return (function(__iced_k) {
+          __iced_deferrals = new iced.Deferrals(__iced_k, {
+            parent: ___iced_passed_deferral,
+            filename: "./index.iced",
+            funcname: "Stampery"
+          });
+          _this._auth(__iced_deferrals.defer({
+            assign_fn: (function(__slot_1) {
+              return function() {
+                return __slot_1.authed = arguments[0];
+              };
+            })(_this),
+            lineno: 37
+          }));
+          __iced_deferrals._fulfill();
         });
-      }
-    };
-
-    Stampery.prototype._recursiveConvert = function(proof) {
-      return proof.map((function(_this) {
-        return function(e) {
-          if (e instanceof Buffer) {
-            e = e.toString('utf8');
-          } else if (e instanceof Array) {
-            e = _this._recursiveConvert(e);
+      })(this)((function(_this) {
+        return function() {
+          if (_this.authed) {
+            return _this._connectRabbit();
           }
-          return e;
         };
       })(this));
-    };
+    }
 
     Stampery.prototype._connectRabbit = function() {
       var err, ___iced_passed_deferral, __iced_deferrals, __iced_k;
@@ -110,7 +111,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 56
+                lineno: 43
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -128,7 +129,7 @@
                     return __slot_1.rabbit = arguments[1];
                   };
                 })(_this),
-                lineno: 58
+                lineno: 45
               }));
               __iced_deferrals._fulfill();
             })(__iced_k);
@@ -139,13 +140,16 @@
           if (err) {
             return console.log("[QUEUE] Error connecting " + err);
           }
-          console.log('[QUEUE] Connected to Rabbit!');
-          _this.emit('ready');
-          amqpDomain.add(_this.rabbit);
-          return _this.rabbit.on('error', function(err) {
-            _this.emit('error', err);
-            return _this._connectRabbit;
-          });
+          if (_this.rabbit) {
+            console.log('[QUEUE] Connected to Rabbit!');
+            _this.emit('ready');
+            amqpDomain.add(_this.rabbit);
+            _this._handleQueueConsumingForHash(_this.clientId);
+            return _this.rabbit.on('error', function(err) {
+              _this.emit('error', err);
+              return _this._connectRabbit;
+            });
+          }
         };
       })(this));
     };
@@ -183,15 +187,16 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 80
+            lineno: 70
           }));
           __iced_deferrals._fulfill();
         });
       })(this)((function(_this) {
         return function() {
-          console.log("[RPC] Auth: ", err, res);
           if (err) {
-            return _this.emit('error', err);
+            _this.auth = false;
+            _this.emit('error', "Couldn't authenticate");
+            process.exit();
           }
           return cb(true);
         };
@@ -217,7 +222,7 @@
                   return __slot_1.channel = arguments[1];
                 };
               })(_this),
-              lineno: 87
+              lineno: 79
             }));
             __iced_deferrals._fulfill();
           });
@@ -226,18 +231,15 @@
             console.log("[QUEUE] Bound to " + queue + "-clnt", err);
             return __iced_k(_this.channel.consume("" + queue + "-clnt", function(queueMsg) {
               var hash, niceProof, unpackedMsg;
-              console.log("[QUEUE] Received data!");
               unpackedMsg = msgpack.unpack(queueMsg.content);
               hash = queueMsg.fields.routingKey;
               if (unpackedMsg[3][0] === 1 || unpackedMsg[3][0] === -1) {
                 console.log('[QUEUE] Received BTC proof for ' + hash);
-                unpackedMsg[1] = (_this.ethSiblings[hash] || []).concat(unpackedMsg[1] || []);
               } else if (unpackedMsg[3][0] === 2 || unpackedMsg[3][0] === -2) {
                 console.log('[QUEUE] Received ETH proof for ' + hash);
-                _this.ethSiblings[hash] = _this._convertSiblingArray(unpackedMsg[1]);
               }
               _this.channel.ack(queueMsg);
-              niceProof = _this._recursiveConvert(unpackedMsg);
+              niceProof = _this._processProof(unpackedMsg);
               return _this.emit('proof', hash, niceProof);
             }));
           };
@@ -247,9 +249,31 @@
       }
     };
 
+    Stampery.prototype._processProof = function(raw_proof) {
+      return {
+        'version': raw_proof[0],
+        'siblings': this._convertSiblingArray(raw_proof[1]),
+        'root': raw_proof[2].toString('utf8'),
+        'anchor': {
+          'chain': raw_proof[3][0],
+          'tx': raw_proof[3][1].toString('utf8')
+        }
+      };
+    };
+
+    Stampery.prototype._convertSiblingArray = function(siblings) {
+      if (siblings === '') {
+        return [];
+      } else {
+        return siblings.map(function(v, i) {
+          return v.toString();
+        });
+      }
+    };
+
     Stampery.prototype._merkleMixer = function(a, b, cb) {
       var data, _ref;
-      if (b > a) {
+      if (a > b) {
         _ref = [b, a], a = _ref[0], b = _ref[1];
       }
       data = a + b;
@@ -267,13 +291,13 @@
             filename: "./index.iced",
             funcname: "Stampery.prove"
           });
-          _this.checkSiblings(hash, proof[1], proof[2], __iced_deferrals.defer({
+          _this.checkSiblings(hash, proof.siblings, proof.root, __iced_deferrals.defer({
             assign_fn: (function() {
               return function() {
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 118
+            lineno: 124
           }));
           __iced_deferrals._fulfill();
         });
@@ -301,7 +325,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 122
+            lineno: 128
           }));
           __iced_deferrals._fulfill();
         });
@@ -313,7 +337,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 123
+            lineno: 129
           }));
           return cb(valid);
         };
@@ -340,7 +364,7 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 130
+              lineno: 136
             }));
             __iced_deferrals._fulfill();
           });
@@ -385,7 +409,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 140
+            lineno: 146
           }));
           __iced_deferrals._fulfill();
         });
@@ -396,71 +420,16 @@
       })(this));
     };
 
-    Stampery.prototype.receiveMissedProofs = function() {
-      return this._handleQueueConsumingForHash(this.clientId);
-    };
-
     Stampery.prototype.stamp = function(hash) {
-      var err, res, ___iced_passed_deferral, __iced_deferrals, __iced_k;
-      __iced_k = __iced_k_noop;
-      ___iced_passed_deferral = iced.findDeferral(arguments);
-      console.log("Stamping " + hash);
-      (function(_this) {
-        return (function(__iced_k) {
-          if (!_this.authed) {
-            (function(__iced_k) {
-              __iced_deferrals = new iced.Deferrals(__iced_k, {
-                parent: ___iced_passed_deferral,
-                filename: "./index.iced",
-                funcname: "Stampery.stamp"
-              });
-              _this._auth(__iced_deferrals.defer({
-                assign_fn: (function(__slot_1) {
-                  return function() {
-                    return __slot_1.authed = arguments[0];
-                  };
-                })(_this),
-                lineno: 150
-              }));
-              __iced_deferrals._fulfill();
-            })(__iced_k);
-          } else {
-            return __iced_k();
+      console.log("\nStamping \n" + hash);
+      hash = hash.toUpperCase();
+      return this.rpc.invoke('stamp', [hash], (function(_this) {
+        return function(err, res) {
+          console.log("[API] Received response: ", res);
+          if (err) {
+            console.log("[RPC] Error: " + err);
+            return _this.emit('error', err);
           }
-        });
-      })(this)((function(_this) {
-        return function() {
-          hash = hash.toUpperCase();
-          console.log("Let's stamp " + hash);
-          if (!_this.rabbit) {
-            return setTimeout(_this.stamp.bind(_this, hash), 500);
-          }
-          (function(__iced_k) {
-            __iced_deferrals = new iced.Deferrals(__iced_k, {
-              parent: ___iced_passed_deferral,
-              filename: "./index.iced",
-              funcname: "Stampery.stamp"
-            });
-            _this.rpc.invoke('stamp', [hash], __iced_deferrals.defer({
-              assign_fn: (function() {
-                return function() {
-                  err = arguments[0];
-                  return res = arguments[1];
-                };
-              })(),
-              lineno: 154
-            }));
-            __iced_deferrals._fulfill();
-          })(function() {
-            if (!_this.authed) {
-              return _this.emit('error', 'Not authenticated');
-            }
-            console.log("[API] Received response: ", res);
-            if (err) {
-              console.log("[RPC] Error: " + err);
-              return _this.emit('error', err);
-            }
-          });
         };
       })(this));
     };
