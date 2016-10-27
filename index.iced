@@ -135,9 +135,12 @@ class Stampery
       head = siblings[0]
       tail = siblings.slice 1
       await @_merkleMixer hash, head, defer hash
+      console.log 'Resulting in', hash
       await @checkSiblings hash, tail, root, (res) ->
         cb res
     else
+      console.log 'A_Root', hash
+      console.log 'B_Root', root
       cb hash is root
 
   checkRootInChain : (root, chain, txid, cb) =>

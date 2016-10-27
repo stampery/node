@@ -370,6 +370,7 @@
           });
         })(this)((function(_this) {
           return function() {
+            console.log('Resulting in', hash);
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
@@ -384,6 +385,8 @@
           };
         })(this));
       } else {
+        console.log('A_Root', hash);
+        console.log('B_Root', root);
         return __iced_k(cb(hash === root));
       }
     };
@@ -409,7 +412,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 146
+            lineno: 149
           }));
           __iced_deferrals._fulfill();
         });
