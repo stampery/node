@@ -187,7 +187,7 @@
                 return res = arguments[1];
               };
             })(),
-            lineno: 70
+            lineno: 69
           }));
           __iced_deferrals._fulfill();
         });
@@ -207,46 +207,40 @@
       var err, ___iced_passed_deferral, __iced_deferrals, __iced_k;
       __iced_k = __iced_k_noop;
       ___iced_passed_deferral = iced.findDeferral(arguments);
-      if (this.rabbit) {
-        (function(_this) {
-          return (function(__iced_k) {
-            __iced_deferrals = new iced.Deferrals(__iced_k, {
-              parent: ___iced_passed_deferral,
-              filename: "./index.iced",
-              funcname: "Stampery._handleQueueConsumingForHash"
-            });
-            _this.rabbit.createChannel(__iced_deferrals.defer({
-              assign_fn: (function(__slot_1) {
-                return function() {
-                  err = arguments[0];
-                  return __slot_1.channel = arguments[1];
-                };
-              })(_this),
-              lineno: 79
-            }));
-            __iced_deferrals._fulfill();
+      (function(_this) {
+        return (function(__iced_k) {
+          __iced_deferrals = new iced.Deferrals(__iced_k, {
+            parent: ___iced_passed_deferral,
+            filename: "./index.iced",
+            funcname: "Stampery._handleQueueConsumingForHash"
           });
-        })(this)((function(_this) {
-          return function() {
-            console.log("[QUEUE] Bound to " + queue + "-clnt", err);
-            return __iced_k(_this.channel.consume("" + queue + "-clnt", function(queueMsg) {
+          _this.rabbit.createChannel(__iced_deferrals.defer({
+            assign_fn: (function(__slot_1) {
+              return function() {
+                err = arguments[0];
+                return __slot_1.channel = arguments[1];
+              };
+            })(_this),
+            lineno: 77
+          }));
+          __iced_deferrals._fulfill();
+        });
+      })(this)((function(_this) {
+        return function() {
+          if (!err) {
+            return _this.channel.consume("" + queue + "-clnt", function(queueMsg) {
               var hash, niceProof, unpackedMsg;
               unpackedMsg = msgpack.unpack(queueMsg.content);
               hash = queueMsg.fields.routingKey;
-              if (unpackedMsg[3][0] === 1 || unpackedMsg[3][0] === -1) {
-                console.log('[QUEUE] Received BTC proof for ' + hash);
-              } else if (unpackedMsg[3][0] === 2 || unpackedMsg[3][0] === -2) {
-                console.log('[QUEUE] Received ETH proof for ' + hash);
-              }
               _this.channel.ack(queueMsg);
               niceProof = _this._processProof(unpackedMsg);
               return _this.emit('proof', hash, niceProof);
-            }));
-          };
-        })(this));
-      } else {
-        return __iced_k(this.emit('error', "Error binding to " + hash + "-clnt"));
-      }
+            });
+          } else {
+            return _this.emit('error', "Error " + err);
+          }
+        };
+      })(this));
     };
 
     Stampery.prototype._processProof = function(raw_proof) {
@@ -297,7 +291,7 @@
                 return siblingsAreOK = arguments[0];
               };
             })(),
-            lineno: 124
+            lineno: 117
           }));
           __iced_deferrals._fulfill();
         });
@@ -325,7 +319,7 @@
                 return hash = arguments[0];
               };
             })(),
-            lineno: 128
+            lineno: 121
           }));
           __iced_deferrals._fulfill();
         });
@@ -337,7 +331,7 @@
                 return valid = arguments[0];
               };
             })(),
-            lineno: 129
+            lineno: 122
           }));
           return cb(valid);
         };
@@ -364,13 +358,12 @@
                   return hash = arguments[0];
                 };
               })(),
-              lineno: 136
+              lineno: 129
             }));
             __iced_deferrals._fulfill();
           });
         })(this)((function(_this) {
           return function() {
-            console.log('Resulting in', hash);
             (function(__iced_k) {
               __iced_deferrals = new iced.Deferrals(__iced_k, {
                 parent: ___iced_passed_deferral,
@@ -385,8 +378,6 @@
           };
         })(this));
       } else {
-        console.log('A_Root', hash);
-        console.log('B_Root', root);
         return __iced_k(cb(hash === root));
       }
     };
@@ -412,7 +403,7 @@
                 return data = arguments[0];
               };
             })(),
-            lineno: 149
+            lineno: 139
           }));
           __iced_deferrals._fulfill();
         });
@@ -428,7 +419,6 @@
       hash = hash.toUpperCase();
       return this.rpc.invoke('stamp', [hash], (function(_this) {
         return function(err, res) {
-          console.log("[API] Received response: ", res);
           if (err) {
             console.log("[RPC] Error: " + err);
             return _this.emit('error', err);

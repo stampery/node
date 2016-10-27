@@ -54,7 +54,6 @@ class Stampery
         @emit 'error', err
         @_connectRabbit
 
-
   _sha3Hash: (stringToHash, cb) ->
     cb SHA3.sha3_512(stringToHash)
 
@@ -76,27 +75,21 @@ class Stampery
     cb true
 
   _handleQueueConsumingForHash: (queue) =>
-    if @rabbit
-      await @rabbit.createChannel defer err, @channel
-      console.log "[QUEUE] Bound to #{queue}-clnt", err
+    await @rabbit.createChannel defer err, @channel
+    unless err
       @channel.consume "#{queue}-clnt", (queueMsg) =>
         # Nucleus response spec
         # [v, [sib], root, [chain, txid]]
         unpackedMsg = msgpack.unpack queueMsg.content
         # The original hash is the routing_key
         hash = queueMsg.fields.routingKey
-        if unpackedMsg[3][0] is 1 or unpackedMsg[3][0] is -1
-          # Checking if the chain is Bitcoin
-          console.log '[QUEUE] Received BTC proof for ' + hash
-        else if unpackedMsg[3][0] is 2 or unpackedMsg[3][0] is -2
-          # Checking if the chain is Ethereum
-          console.log '[QUEUE] Received ETH proof for ' + hash
+
           # ACKing the queue message
         @channel.ack queueMsg
         niceProof =  @_processProof unpackedMsg
         @emit 'proof', hash, niceProof
     else
-      @emit 'error', "Error binding to #{hash}-clnt"
+      @emit 'error', "Error #{err}"
 
   _processProof: (raw_proof) =>
     {
@@ -135,12 +128,9 @@ class Stampery
       head = siblings[0]
       tail = siblings.slice 1
       await @_merkleMixer hash, head, defer hash
-      console.log 'Resulting in', hash
       await @checkSiblings hash, tail, root, (res) ->
         cb res
     else
-      console.log 'A_Root', hash
-      console.log 'B_Root', root
       cb hash is root
 
   checkRootInChain : (root, chain, txid, cb) =>
@@ -154,7 +144,6 @@ class Stampery
     console.log "\nStamping \n#{hash}"
     hash = hash.toUpperCase()
     @rpc.invoke 'stamp', [hash], (err, res) =>
-      console.log "[API] Received response: ", res
       if err
         console.log "[RPC] Error: #{err}"
         @emit 'error', err
