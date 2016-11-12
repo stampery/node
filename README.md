@@ -10,11 +10,15 @@ Seamlessly integrate industrial-scale data certification into your own NodeJS ap
 
   1. Install `stampery` into your project and add it as a dependency in your `package.json`:
 
-        npm install --save stampery
+```
+npm install --save stampery
+```
 
   2. Go to the [API dashboard](https://api-dashboard.stampery.com), sign up and create a token for your application. It will resemble this:
 
-        2f6215c7-ad87-4d6e-bf9e-e9f07aa35f1a
+```
+2f6215c7-ad87-4d6e-bf9e-e9f07aa35f1a
+```
 
 ## Usage
 
@@ -22,7 +26,8 @@ Seamlessly integrate industrial-scale data certification into your own NodeJS ap
 Stampery = require('stampery');
 
 // Sign up and get your secret token at https://api-dashboard.stampery.com
-stampery = new Stampery('yourSecretToken')
+// Please use 'beta' for testing and 'prod' for production
+stampery = new Stampery('yourSecretToken', 'prod')
 
 stampery.on('proof', function(hash, proof) {
   console.log("Received proof for " + hash, proof);
@@ -45,7 +50,8 @@ Here is the same example, just using our beloved IcedCoffeeScript:
 Stampery = require 'stampery'
 
 # Sign up and get your secret token at https://api-dashboard.stampery.com
-stampery = new Stampery 'yourSecretToken'
+# Please use 'beta' for testing and 'prod' for production
+stampery = new Stampery 'your-secret-token', 'prod'
 
 stampery.on 'proof', (hash, proof) ->
   console.log "Received proof for #{hash}", proof
@@ -70,18 +76,8 @@ stampery.on 'ready', ->
 
 Ping us at [support@stampery.com](mailto:support@stampery.com) and we will more than happy to help you! 😃
 
-## Official implementations
-- [NodeJS](https://github.com/stampery/node)
-- [PHP](https://github.com/stampery/php)
-- [ruby](https://github.com/stampery/ruby)
-- [Python](https://github.com/stampery/python)
-- [Elixir](https://github.com/stampery/elixir)
-- [Java](https://github.com/stampery/java)
-- [Go](https://github.com/stampery/go)
-
 ## License
 
-Code released under
-[the MIT license](https://github.com/stampery/node/blob/master/LICENSE).
+Code released under [the MIT license](https://github.com/stampery/node/blob/master/LICENSE).
 
 Copyright 2015-2016 Stampery, Inc.

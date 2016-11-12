@@ -54,8 +54,8 @@ class Stampery
         @emit 'error', err
         @_connectRabbit
 
-  _sha3Hash: (stringToHash, cb) ->
-    cb SHA3.sha3_512(stringToHash)
+  _sha3Hash: (string, cb) ->
+    cb SHA3.sha3_512(string).toUpperCase()
 
   _hashFile : (fd, cb) ->
     hash = new SHA3.sha3_512.create()
@@ -86,13 +86,14 @@ class Stampery
 
           # ACKing the queue message
         @channel.ack queueMsg
-        niceProof =  @_processProof unpackedMsg
+        niceProof =  @_processProof hash, unpackedMsg
         @emit 'proof', hash, niceProof
     else
       @emit 'error', "Error #{err}"
 
-  _processProof: (raw_proof) =>
+  _processProof: (hash, raw_proof) =>
     {
+      'hash': hash
       'version': raw_proof[0]
       'siblings': @_convertSiblingArray raw_proof[1]
       'root': raw_proof[2].toString 'utf8'
@@ -109,10 +110,9 @@ class Stampery
         v.toString()
 
   _merkleMixer : (a, b, cb) =>
-    if a > b
-      [a, b] = [b, a]
-    data = a + b
-    @_sha3Hash data, cb
+    commuted = if a > b then a + b else b + a
+    buffer = new Buffer(commuted, 'hex')
+    @_sha3Hash buffer, cb
 
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof.siblings, proof.root, defer siblingsAreOK
@@ -126,10 +126,9 @@ class Stampery
   checkSiblings : (hash, siblings, root, cb) =>
     if siblings.length > 0
       head = siblings[0]
-      tail = siblings.slice 1
+      tail = siblings.slice(1)
       await @_merkleMixer hash, head, defer hash
-      await @checkSiblings hash, tail, root, (res) ->
-        cb res
+      await @checkSiblings hash, tail, root, cb
     else
       cb hash is root
 
