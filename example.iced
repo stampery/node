@@ -1,7 +1,7 @@
-Stampery = require './index'
+Stampery = require './index.iced'
 
 # Sign up and get your secret token at https://api-dashboard.stampery.com
-stampery = new Stampery 'user-secret'
+stampery = new Stampery '14f1e553-325f-4549-ced6-6c5311b1a470'
 
 stampery.on 'proof', (hash, proof) ->
   console.log "\nReceived proof for\n#{hash}\n", JSON.stringify(proof, null, 2)

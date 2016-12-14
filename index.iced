@@ -21,14 +21,14 @@ class Stampery
   ethSiblings: {}
   authed: false
 
-  constructor : (@clientSecret, @beta) ->
+  constructor : (@clientSecret, @env) ->
     @clientId = crypto
       .createHash('md5')
       .update(@clientSecret)
       .digest('hex')
       .substring(0, 15)
 
-    if @beta
+    if @env is 'beta'
       host = 'api-beta.stampery.com:4000'
     else
       host = 'api.stampery.com:4000'
@@ -55,10 +55,10 @@ class Stampery
         @_connectRabbit
 
   _sha3Hash: (string, cb) ->
-    cb SHA3.sha3_512(string).toUpperCase()
+    cb SHA3.keccak_512(string).toUpperCase()
 
   _hashFile : (fd, cb) ->
-    hash = new SHA3.sha3_512.create()
+    hash = new SHA3.keccak_512.create()
 
     fd.on 'end', () ->
       cb hash.hex()
@@ -111,8 +111,7 @@ class Stampery
 
   _merkleMixer : (a, b, cb) =>
     commuted = if a > b then a + b else b + a
-    buffer = new Buffer(commuted, 'hex')
-    @_sha3Hash buffer, cb
+    @_sha3Hash commuted, cb
 
   prove : (hash, proof, cb) =>
     await @checkSiblings hash, proof.siblings, proof.root, defer siblingsAreOK
@@ -125,8 +124,8 @@ class Stampery
 
   checkSiblings : (hash, siblings, root, cb) =>
     if siblings.length > 0
-      head = siblings[0]
-      tail = siblings.slice(1)
+      head = siblings.slice(-1)
+      tail = siblings.slice(0, -1)
       await @_merkleMixer hash, head, defer hash
       await @checkSiblings hash, tail, root, cb
     else
