@@ -1,49 +1,39 @@
 {
   "name": "stampery",
-  "version": "3.5.0",
-  "description": "Stampery API for NodeJS. Notarize all your data using the blockchain",
-  "main": "index.js",
+  "version": "6.0.0",
+  "description": "Stampery API for NodeJS: the blockchain-powered, industrial-scale certification platform.",
+  "main": "dist/stampery.min.js",
   "keywords": [
     "stampery",
     "blockchain",
     "timestamping",
-    "notarize",
+    "certification",
     "notary",
-    "bitcoin"
+    "bitcoin",
+    "ethereum"
   ],
-  "author": "Luis Iván Cuende",
-  "contributors": [{
+  "author": {
     "name": "Adán Sánchez de Pedro",
     "email": "adan@stampery.com"
-  }, {
-    "name": "Johann Ortiz",
-    "email": "johann@stampery.com"
-  }],
+  },
   "license": "MIT",
   "dependencies": {
-    "amqplib": "^0.4.1",
-    "iced-runtime": "^1.0.2",
-    "js-sha3": "^0.5.5",
-    "msgpack": "^1.0.2",
-    "msgpackrpc": "^1.2.0",
-    "request": "^2.72.0",
-    "retry": "^0.8.0",
-    "rocksolidsocket": "^1.0.0"
+    "request": "^2.79.0"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/stampery/node.git"
   },
   "scripts": {
-    "build": "grunt"
+    "build": "grunt",
+    "example": "coffee src/example.coffee"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
-    "grunt-contrib-uglify": "^1.0.1",
-    "grunt-iced-coffee": "^0.7.0",
-    "iced-coffee-script": "^108.0.11"
+    "grunt-contrib-coffee": "^1.0.0",
+    "grunt-contrib-uglify": "^2.0.0"
   },
   "engines": {
-    "node": "5.x"
+    "node": "4.x"
   }
 }
