@@ -25,10 +25,10 @@ stampery.stamp h, (err, stamp) ->
 # stampery.getById '5857d1629e7cba66c3ea20a8', (err, res) ->
 #   if err then return console.error err
 #   console.log res
-#   if res then console.log 'Valid': stampery.prove res.receipts
+#   if res then console.log 'Valid: ', stampery.prove res.receipts
 
 ###*
-* Example for retrieving the proofs for all the stamp related to a certain file
+* Example for retrieving the proofs for all the stamps related to a certain file
 * hash at any time afterwards.
 ###
 # stampery.getByHash '<put here the file hash>', (err, res) ->
