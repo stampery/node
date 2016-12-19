@@ -1,7 +1,7 @@
 {
   "name": "stampery",
   "version": "6.0.0",
-  "description": "Stampery API for NodeJS: the blockchain-powered, industrial-scale certification platform.",
+  "description": "Stampery API for NodeJS: seamlessly integrate the blockchain-powered, industrial-scale certification platform into your NodeJS apps.",
   "main": "dist/stampery.min.js",
   "keywords": [
     "stampery",
@@ -34,6 +34,6 @@
     "grunt-contrib-uglify": "^2.0.0"
   },
   "engines": {
-    "node": "4.x"
+    "node": ">= 4.0.0"
   }
 }
