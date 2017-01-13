@@ -30,7 +30,7 @@
       this.clientId = crypto.createHash('md5').update(this.clientSecret).digest('hex').substring(0, 15);
       buf = new Buffer(this.clientId + ":" + this.clientSecret);
       this.auth = 'Basic ' + buf.toString('base64');
-      this.host = this.env === 'beta' ? 'http://api-beta.stampery.com' : 'https://api.stampery.com';
+      this.host = this.env === 'beta' ? 'https://api-beta.stampery.com' : 'https://api.stampery.com';
     }
 
 
@@ -150,7 +150,7 @@
         }
       };
       if (params) {
-        options.json = JSON.stringify(params);
+        options.json = params;
       }
       return request(options, function(error, response, body) {
         if (error) {

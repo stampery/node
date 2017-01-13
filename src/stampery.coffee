@@ -18,7 +18,7 @@ class Stampery
     @auth = 'Basic ' + buf.toString('base64')
 
     @host = if @env is 'beta'
-      'http://api-beta.stampery.com'
+      'https://api-beta.stampery.com'
     else
       'https://api.stampery.com'
 
@@ -106,7 +106,7 @@ class Stampery
         'Authorization': @auth
         'Content-Type': 'application/json'
 
-    if params then options.json = JSON.stringify params
+    if params then options.json = params
     request options, (error, response, body) ->
       if error
         cb error, null
