@@ -16,7 +16,7 @@
     function Stampery(clientSecret, env) {
       var buf;
       this.clientSecret = clientSecret;
-      this.env = env;
+      this.env = env != null ? env : 'prod';
       this._merkleMix = bind(this._merkleMix, this);
       this._checkSiblings = bind(this._checkSiblings, this);
       this.prove = bind(this.prove, this);
@@ -30,7 +30,7 @@
       this.clientId = crypto.createHash('md5').update(this.clientSecret).digest('hex').substring(0, 15);
       buf = new Buffer(this.clientId + ":" + this.clientSecret);
       this.auth = 'Basic ' + buf.toString('base64');
-      this.host = this.env === 'beta' ? 'https://api-beta.stampery.com' : 'https://api.stampery.com';
+      this.host = this.env === 'beta' ? 'https://api-beta.stampery.com' : 'https://api-prod.stampery.com';
     }
 
 

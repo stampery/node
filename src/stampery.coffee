@@ -7,7 +7,7 @@ request = require 'request'
 ###
 class Stampery
 
-  constructor : (@clientSecret, @env) ->
+  constructor : (@clientSecret, @env = 'prod') ->
     @clientId = crypto
       .createHash('md5')
       .update(@clientSecret)
@@ -20,7 +20,7 @@ class Stampery
     @host = if @env is 'beta'
       'https://api-beta.stampery.com'
     else
-      'https://api.stampery.com'
+      'https://api-prod.stampery.com'
 
   ###*
   * Convenience function for obtaining the SHA-256 hash of a string
