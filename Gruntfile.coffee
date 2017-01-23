@@ -1,20 +1,17 @@
 module.exports = (grunt) ->
 
   grunt.initConfig
-    pkg: grunt.file.readJSON './package.json'
     coffee:
       compile:
         files:
-          './index.js': './index.iced'
+          './dist/stampery.js': './src/stampery.coffee'
 
     uglify:
-      options:
-        banner: '/*! <%= pkg.name %>-node <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       build:
-        src: './index.js',
-        dest: './index.min.js'
+        src: './dist/stampery.js'
+        dest: './dist/stampery.min.js'
 
+  grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
-  grunt.loadNpmTasks 'grunt-iced-coffee'
 
   grunt.registerTask 'default', ['coffee', 'uglify']
