@@ -154,17 +154,6 @@ Every receipt contains a time field that tells the exact point in time in which 
 
 For a decentralized, tamper-proof, censor-resistant, math-backed timestamp, the valid date you are looking for is the one that appears when you take the transaction ID from the anchor in each receipt and search it in a blockchain explorer.
 
-
-## Other languages and platforms
-
-Stampery API is also available in many other languages and platforms:
-- [Python](https://github.com/stampery/python)
-- [Ruby](https://github.com/stampery/ruby)
-- [Go](https://github.com/stampery/go)
-- [Elixir](https://github.com/stampery/elixir)
-- [Java](https://github.com/stampery/java)
-- [PHP](https://github.com/stampery/php)
-
 ## Feedback
 
 Ping us at [support@stampery.com](mailto:support@stampery.com) and we will be more than happy to help you with your integration! 😃
@@ -173,4 +162,4 @@ Ping us at [support@stampery.com](mailto:support@stampery.com) and we will be mo
 
 Code released under [the MIT license](https://github.com/stampery/node/blob/master/LICENSE).
 
-© 2015-2016 Stampery, Inc.
+© 2015-2017 Stampery, Inc.
