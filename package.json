@@ -1,6 +1,6 @@
 {
   "name": "stampery",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Stampery API for NodeJS: seamlessly integrate the blockchain-powered, industrial-scale certification platform into your NodeJS apps.",
   "main": "dist/stampery.min.js",
   "keywords": [

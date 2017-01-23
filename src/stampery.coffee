@@ -123,14 +123,15 @@ class Stampery
   * @param {Object} receipts - The 'receipts' object or the stamp itself
   * @param {proveCallback} cb - Callback for handling the result
   ###
-  prove : (receipts) =>
-    if 'receipts' of receipts
-      receipts = receipts.receipts
-    receipt = [receipts.btc, receipts.eth].find (receipt) ->
-      typeof receipt isnt 'number'
+  prove : (receipt) =>
+    if 'receipts' of receipt
+      receipt = receipt.receipts
+    if 'btc' of receipt
+      receipt = [receipt.btc, receipt.eth].find (receipt) ->
+        typeof receipt isnt 'number'
     if receipt
-      @_checkSiblings receipt.targetHash, receipt.proof, receipt.merkleRoot
-    else false
+      return @_checkSiblings receipt.targetHash, receipt.proof, receipt.merkleRoot
+    false
   ###*
   * @callback proveCallback
   * @param {Boolean} res - Whether the longest receipt is valid or not

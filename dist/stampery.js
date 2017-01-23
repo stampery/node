@@ -173,19 +173,19 @@
     * @param {proveCallback} cb - Callback for handling the result
      */
 
-    Stampery.prototype.prove = function(receipts) {
-      var receipt;
-      if ('receipts' in receipts) {
-        receipts = receipts.receipts;
+    Stampery.prototype.prove = function(receipt) {
+      if ('receipts' in receipt) {
+        receipt = receipt.receipts;
       }
-      receipt = [receipts.btc, receipts.eth].find(function(receipt) {
-        return typeof receipt !== 'number';
-      });
+      if ('btc' in receipt) {
+        receipt = [receipt.btc, receipt.eth].find(function(receipt) {
+          return typeof receipt !== 'number';
+        });
+      }
       if (receipt) {
         return this._checkSiblings(receipt.targetHash, receipt.proof, receipt.merkleRoot);
-      } else {
-        return false;
       }
+      return false;
     };
 
 
