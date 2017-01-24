@@ -174,6 +174,7 @@
      */
 
     Stampery.prototype.prove = function(receipt) {
+      var hash;
       if ('receipts' in receipt) {
         receipt = receipt.receipts;
       }
@@ -183,7 +184,8 @@
         });
       }
       if (receipt) {
-        return this._checkSiblings(receipt.targetHash, receipt.proof, receipt.merkleRoot);
+        hash = Buffer(receipt.targetHash, 'hex');
+        return this._checkSiblings(hash, receipt.proof, receipt.merkleRoot);
       }
       return false;
     };
@@ -204,7 +206,7 @@
         return this._checkSiblings(mix, tail, root);
       } else {
         root = new Buffer(root, 'hex');
-        return hash.equals(root);
+        return root.equals(hash);
       }
     };
 

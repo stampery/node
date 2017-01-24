@@ -130,7 +130,8 @@ class Stampery
       receipt = [receipt.btc, receipt.eth].find (receipt) ->
         typeof receipt isnt 'number'
     if receipt
-      return @_checkSiblings receipt.targetHash, receipt.proof, receipt.merkleRoot
+      hash = Buffer receipt.targetHash, 'hex'
+      return @_checkSiblings hash, receipt.proof, receipt.merkleRoot
     false
   ###*
   * @callback proveCallback
@@ -146,7 +147,7 @@ class Stampery
       @_checkSiblings mix, tail, root
     else
       root = new Buffer root, 'hex'
-      hash.equals root
+      root.equals hash
 
   _merkleMix : (hashes) =>
     buf = Buffer.concat hashes.map (h) -> Buffer(h, 'hex')
