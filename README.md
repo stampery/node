@@ -1,6 +1,7 @@
 # Stampery
 
 [![NPM Package](https://img.shields.io/npm/v/stampery.svg?style=flat-square)](https://www.npmjs.org/package/stampery)
+[![Build Status](https://travis-ci.org/stampery/node.svg?branch=master)](https://travis-ci.org/stampery/node)
 
 __NodeJS__ client library for [__Stampery API__](https://stampery.com/api), the __blockchain-powered__, __industrial-scale certification platform__.
 
