@@ -26,12 +26,15 @@
   },
   "scripts": {
     "build": "grunt",
-    "example": "coffee src/example.coffee"
+    "example": "coffee src/example.coffee",
+    "test": "mocha"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "grunt": "^1.0.1",
     "grunt-contrib-coffee": "^1.0.0",
-    "grunt-contrib-uglify": "^2.0.0"
+    "grunt-contrib-uglify": "^2.0.0",
+    "mocha": "^3.2.0"
   },
   "engines": {
     "node": ">= 4.0.0"
