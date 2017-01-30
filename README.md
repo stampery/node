@@ -2,6 +2,9 @@
 
 [![NPM Package](https://img.shields.io/npm/v/stampery.svg?style=flat-square)](https://www.npmjs.org/package/stampery)
 [![Build Status](https://travis-ci.org/stampery/node.svg?branch=master)](https://travis-ci.org/stampery/node)
+[![Code Climate](https://codeclimate.com/github/stampery/node/badges/gpa.svg)](https://codeclimate.com/github/stampery/node)
+[![Test Coverage](https://codeclimate.com/github/stampery/node/badges/coverage.svg)](https://codeclimate.com/github/stampery/node/coverage)
+[![Issue Count](https://codeclimate.com/github/stampery/node/badges/issue_count.svg)](https://codeclimate.com/github/stampery/node)
 
 __NodeJS__ client library for [__Stampery API__](https://stampery.com/api), the __blockchain-powered__, __industrial-scale certification platform__.
 
