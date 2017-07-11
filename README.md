@@ -145,7 +145,7 @@ stampery.getAll(4, function(err, res) {
 ## FAQ
 
 ##### Is there any privacy concern derived from using public blockchains?
-No. Hashes are always calculated client-side, and only anonimous hashes go through our service and get eventually published. No one can know what you are actually stamping—not even us.
+No. Hashes are always calculated client-side, and only anonymous hashes go through our service and get eventually published. No one can know what you are actually stamping—not even us.
 
 ##### Can I choose which blockchain to use?
 No. This API currently anchors your hashes into both the Ethereum and the Bitcoin blockchains for latency and redundancy reasons. In the future we may support other blockchains if they provide interesting features for anchoring.
