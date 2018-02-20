@@ -2,7 +2,7 @@ chai = require 'chai'
 chai.should()
 
 Stampery = require '../src/stampery'
-stampery = new Stampery 'a1a8eefe-51d4-4cbc-bdec-3ceb35d7f19d', 'beta'
+stampery = new Stampery 'd931b968-bcc1-4b18-e732-7fd875bcab96', 'beta'
 
 
 describe 'Constructor', ->
@@ -14,10 +14,10 @@ describe 'Constructor', ->
     stampery.env.should.equal 'beta'
 
   it 'should calculate client ID', ->
-    stampery.clientId.should.equal '87a948e0f599ceb'
+    stampery.clientId.should.equal '6583e8d3f3f1d0d'
 
   it 'should calculate basic auth', ->
-    exp = 'Basic ODdhOTQ4ZTBmNTk5Y2ViOmExYThlZWZlLTUxZDQtNGNiYy1iZGVjLTNjZWIzNWQ3ZjE5ZA=='
+    exp = 'Basic NjU4M2U4ZDNmM2YxZDBkOmQ5MzFiOTY4LWJjYzEtNGIxOC1lNzMyLTdmZDg3NWJjYWI5Ng=='
     stampery.auth.should.equal exp
 
 
@@ -56,84 +56,90 @@ describe 'Merkling', ->
 
 
  describe 'Stamping', ->
-   @timeout 10000
+   @timeout 30000
 
-   it 'should stamp', (done) ->
+   it 'should stamp', () ->
      h = stampery.hash "the piano has been drinking #{Math.random()}"
-     stampery.stamp h, (err, stamp) ->
-       err?.should.equal false
-       stamp.should.be.a 'object'
-       stamp.should.have.property 'id'
-       stamp.should.have.property 'time'
-       stamp.hash.should.equal h.toString('hex').toUpperCase()
-       stamp.token.should.equal stampery.clientId
-       stamp.receipts.should.be.a 'object'
-       stamp.receipts.eth.should.be.a 'number'
-       stamp.receipts.btc.should.be.a 'number'
-       done()
-
+     stampery.stamp h
+      .then (stamp) ->
+        stamp.should.be.a 'object'
+        stamp.should.have.property 'id'
+        stamp.should.have.property 'time'
+        stamp.hash.should.equal h.toString('hex').toUpperCase()
+        stamp.token.should.equal stampery.clientId
+        stamp.should.have.property 'receipts'
+        stamp.receipts.should.be.a 'object'
+        stamp.receipts.eth.should.be.a 'number'
+        stamp.receipts.btc.should.be.a 'number'
+      .catch (req) ->
+        console.log req
 
 describe 'Proving', ->
 
-  it 'should retrieve receipts by ID', (done) ->
+  it 'should retrieve receipts by ID', () ->
     id = '588722b836404000049dfa6f'
-    stampery.getById id, (err, stamp) ->
-      err?.should.equal false
-      stamp.should.be.a 'object'
-      stamp.id.should.equal id
-      stamp.should.have.property 'time'
-      stamp.token.should.equal stampery.clientId
-      stamp.receipts.should.be.a 'object'
-      stamp.receipts.eth.should.be.a 'object'
-      stamp.receipts.btc.should.be.a 'object'
-      done()
+    stampery.getById id
+      .then (stamp) ->
+        stamp.should.be.a 'object'
+        stamp.id.should.equal id
+        stamp.should.have.property 'time'
+        stamp.token.should.equal stampery.clientId
+        stamp.receipts.should.be.a 'object'
+        stamp.receipts.eth.should.be.a 'object'
+        stamp.receipts.btc.should.be.a 'object'
+      .catch (error) ->
+        error.should.not.equal null
 
-  it 'should retrieve receipts by hash', (done) ->
+  it 'should retrieve receipts by hash', () ->
     h = Buffer '67d6d9f488ec27ecb15fc67e766261a554c13098b4057d66caa2174b3264ea47', 'hex'
-    stampery.getByHash h, (err, stamps) ->
-      err?.should.equal false
-      stamps.should.be.a 'array'
-      stamps.should.have.length.above 0
-      stamp = stamps[0]
-      stamp.should.be.a 'object'
-      stamp.should.have.property 'id'
-      stamp.should.have.property 'time'
-      stamp.token.should.equal stampery.clientId
-      stamp.hash.should.equal h.toString('hex').toUpperCase()
-      stamp.receipts.should.be.a 'object'
-      stamp.receipts.eth.should.be.a 'object'
-      stamp.receipts.btc.should.be.a 'object'
-      done()
+    stampery.getByHash h
+      .then (stamp) ->
+        stamps.should.be.a 'array'
+        stamps.should.have.length.above 0
+        stamp = stamps[0]
+        stamp.should.be.a 'object'
+        stamp.should.have.property 'id'
+        stamp.should.have.property 'time'
+        stamp.token.should.equal stampery.clientId
+        stamp.hash.should.equal h.toString('hex').toUpperCase()
+        stamp.receipts.should.be.a 'object'
+        stamp.receipts.eth.should.be.a 'object'
+        stamp.receipts.btc.should.be.a 'object'
+      .catch (error) ->
+        error.should.not.equal null
 
-
-  it 'should prove whole stamps', (done) ->
+  it 'should prove whole stamps', () ->
     id = '588722b836404000049dfa6f'
-    stampery.getById id, (err, stamp) ->
-      err?.should.equal false
-      stampery.prove(stamp).should.equal true
-      done()
+    stampery.getById id
+      .then (stamp) ->
+        stampery.prove(stamp).should.equal true
+      .catch (error) ->
+        error.should.not.equal null
 
-  it 'should prove dual receipts objects', (done) ->
+  it 'should prove dual receipts objects', () ->
     id = '588722b836404000049dfa6f'
-    stampery.getById id, (err, stamp) ->
-      err?.should.equal false
-      stampery.prove(stamp.receipts).should.equal true
-      done()
+    stampery.getById id
+      .then (stamp) ->
+        stampery.prove(stamp.receipts).should.equal true
+      .catch (error) ->
+        error.should.not.equal null
 
-  it 'should prove chain-specific receipt objects', (done) ->
+  it 'should prove chain-specific receipt objects', () ->
     id = '588722b836404000049dfa6f'
-    stampery.getById id, (err, stamp) ->
-      err?.should.equal false
-      stampery.prove(stamp.receipts.btc).should.equal true
-      done()
+    stampery.getById id
+      .then (stamp) ->
+        stampery.prove(stamp.receipts.btc).should.equal true
+      .catch (error) ->
+        error.should.not.equal null
 
-  it 'should fail to prove tampered hashes', (done) ->
+  it 'should fail to prove tampered hashes', () ->
     id = '588722b836404000049dfa6f'
-    stampery.getById id, (err, stamp) ->
-      err?.should.equal false
-      stamp.receipts.btc.targetHash = '0' + stamp.receipts.btc.targetHash.slice(1)
-      stampery.prove(stamp.receipts.btc).should.equal false
-      done()
+    stampery.getById id
+      .then (stamp) ->
+        stamp.receipts.btc.targetHash = '0' + stamp.receipts.btc.targetHash.slice(1)
+        stampery.prove(stamp.receipts.btc).should.equal false
+      .catch (error) ->
+        error.should.not.equal null
 
   it 'should prove chainpoint example receipt', ->
     receipt = {
