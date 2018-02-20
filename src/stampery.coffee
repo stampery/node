@@ -1,5 +1,5 @@
 crypto = require 'crypto'
-request = require 'request'
+request = require 'request-promise-native'
 
 ###*
 * Stampery API for NodeJS: seamlessly integrate the blockchain-powered,
@@ -36,92 +36,74 @@ class Stampery
   ###*
    * Retrieve information and receipts for one stamp ID
    * @param {string} sid - Stamp ID
-   * @param {getByIdCallback} cb - Callback for handling the response
+   * @returns {Promise<Object>} - Stamp information and receipts
   ###
-  getById : (sid, cb) =>
-    @_get "stamps/#{sid}", (err, res) ->
-      if res then res = res[0]
-      cb err, res
-  ###*
-  * @callback getByIdCallback
-  * @param {Object} err - Error
-  * @param {Object} res - Stamp information and receipts
-  ###
+  getById : (sid) =>
+    @_get "stamps/#{sid}"
+
 
   ###*
    * Retrieve information and receipts for all stamps related to one hash
    * @param {(string|Buffer)} hash - Hash
-   * @param {getByHashCallback} cb - Callback for handling the response
+   * @returns {Promise<Object>} - Stamp information and receipts
   ###
-  getByHash : (hash, cb) =>
+  getByHash : (hash) =>
     if hash instanceof Buffer
       hash = hash.toString 'hex'
-    @_get "stamps/#{hash}", cb
-  ###*
-  * @callback getByHashCallback
-  * @param {Object} err - Error
-  * @param {Object[]} res - Array containing stamp information and receipts
-  ###
+    @_get "stamps/#{hash}"
 
   ###*
    * Retrieve information and receipts for all my stamps
    * @param {number=0} page - Results are paginated and returned in chunks of 50
-   * @param {getAllCallback} cb - Callback for handling the response
+   * @returns {Promise<Object[]>} - Array containing stamp information and receipts
   ###
   getAll : (cb, aux) =>
     [page, cb] = if aux? then [cb, aux] else [0, cb]
     @_get "stamps?page=#{page}", cb
-  ###*
-  * @callback getByHashCallback
-  * @param {Object} err - Error
-  * @param {Object[]} res - Array containing stamp information and receipts
-  ###
 
   ###*
   * Function for submitting a new stamp
   * @param {(string|buffer)} hash - The hash to be stamped
-  * @param {stampCallback} cb - Callback for handling the response
+  * @param {string=null} hook - A WebHook URI notify when full receipt is ready
+  * @returns {Promise<Object[]>} -
   ###
-  stamp : (hash, cb) =>
+  stamp : (hash, hook = null) =>
     if hash instanceof Buffer
       hash = hash.toString('hex')
-    @_post "stamps", {hash}, cb
-  ###*
-  * @callback stampCallback
-  * @param {Object} err - Error
-  * @param {Object} res - Stamp information and receipts ETA
-  ###
 
-  _get : (path, cb) =>
-    @_req 'GET', path, {}, cb
+    payload = {hash}
+    if hook
+      payload['hook'] = hook
 
-  _post : (path, params, cb) =>
-    @_req 'POST', path, params, cb
+    @_post "stamps", payload
 
-  _req : (method, path, params, cb) =>
+  _get : (path) =>
+    @_req 'GET', path, {}
+
+  _post : (path, params) =>
+    @_req 'POST', path, params
+
+  _req : (method, path, params) =>
     options =
       method: method
-      url: "#{@host}/#{path}"
+      uri: "#{@host}/#{path}"
       headers:
         'Authorization': @auth
         'Content-Type': 'application/json'
+      json: true
 
     if params then options.json = params
-    request options, (error, response, body) ->
-      if error
-        cb error, null
-      else if response.statusCode >= 400
-        cb
-          code: response.statusCode
-          message: response.statusMessage
-        , null
-      else
-        cb null, body.result
+
+    new Promise (resolve, reject) ->
+      request options
+        .then (res) ->
+          resolve res.result
+        .catch (err) ->
+          reject err
 
   ###*
   * Function for proving a the receipts contained in a stamp
   * @param {Object} receipts - The 'receipts' object or the stamp itself
-  * @param {proveCallback} cb - Callback for handling the result
   ###
   prove : (receipt) =>
     if 'receipts' of receipt
@@ -133,10 +115,6 @@ class Stampery
       hash = Buffer receipt.targetHash, 'hex'
       return @_checkSiblings hash, receipt.proof, receipt.merkleRoot
     false
-  ###*
-  * @callback proveCallback
-  * @param {Boolean} res - Whether the longest receipt is valid or not
-  ###
 
   _checkSiblings : (hash, siblings, root) =>
     if siblings.length > 0
