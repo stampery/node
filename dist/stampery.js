@@ -4,7 +4,7 @@
 
   crypto = require('crypto');
 
-  request = require('request');
+  request = require('request-promise-native');
 
 
   /**
@@ -48,51 +48,32 @@
     /**
      * Retrieve information and receipts for one stamp ID
      * @param {string} sid - Stamp ID
-     * @param {getByIdCallback} cb - Callback for handling the response
+     * @returns {Promise<Object>} - Stamp information and receipts
      */
 
-    Stampery.prototype.getById = function(sid, cb) {
-      return this._get("stamps/" + sid, function(err, res) {
-        if (res) {
-          res = res[0];
-        }
-        return cb(err, res);
-      });
+    Stampery.prototype.getById = function(sid) {
+      return this._get("stamps/" + sid);
     };
-
-
-    /**
-    * @callback getByIdCallback
-    * @param {Object} err - Error
-    * @param {Object} res - Stamp information and receipts
-     */
 
 
     /**
      * Retrieve information and receipts for all stamps related to one hash
      * @param {(string|Buffer)} hash - Hash
-     * @param {getByHashCallback} cb - Callback for handling the response
+     * @returns {Promise<Object>} - Stamp information and receipts
      */
 
-    Stampery.prototype.getByHash = function(hash, cb) {
+    Stampery.prototype.getByHash = function(hash) {
       if (hash instanceof Buffer) {
         hash = hash.toString('hex');
       }
-      return this._get("stamps/" + hash, cb);
+      return this._get("stamps/" + hash);
     };
-
-
-    /**
-    * @callback getByHashCallback
-    * @param {Object} err - Error
-    * @param {Object[]} res - Array containing stamp information and receipts
-     */
 
 
     /**
      * Retrieve information and receipts for all my stamps
      * @param {number=0} page - Results are paginated and returned in chunks of 50
-     * @param {getAllCallback} cb - Callback for handling the response
+     * @returns {Promise<Object[]>} - Array containing stamp information and receipts
      */
 
     Stampery.prototype.getAll = function(cb, aux) {
@@ -103,66 +84,57 @@
 
 
     /**
-    * @callback getByHashCallback
-    * @param {Object} err - Error
-    * @param {Object[]} res - Array containing stamp information and receipts
-     */
-
-
-    /**
     * Function for submitting a new stamp
     * @param {(string|buffer)} hash - The hash to be stamped
-    * @param {stampCallback} cb - Callback for handling the response
+    * @param {string=null} hook - A WebHook URI notify when full receipt is ready
+    * @returns {Promise<Object[]>} -
      */
 
-    Stampery.prototype.stamp = function(hash, cb) {
+    Stampery.prototype.stamp = function(hash, hook) {
+      var payload;
+      if (hook == null) {
+        hook = null;
+      }
       if (hash instanceof Buffer) {
         hash = hash.toString('hex');
       }
-      return this._post("stamps", {
+      payload = {
         hash: hash
-      }, cb);
+      };
+      if (hook) {
+        payload['hook'] = hook;
+      }
+      return this._post("stamps", payload);
     };
 
-
-    /**
-    * @callback stampCallback
-    * @param {Object} err - Error
-    * @param {Object} res - Stamp information and receipts ETA
-     */
-
-    Stampery.prototype._get = function(path, cb) {
-      return this._req('GET', path, {}, cb);
+    Stampery.prototype._get = function(path) {
+      return this._req('GET', path, {});
     };
 
-    Stampery.prototype._post = function(path, params, cb) {
-      return this._req('POST', path, params, cb);
+    Stampery.prototype._post = function(path, params) {
+      return this._req('POST', path, params);
     };
 
-    Stampery.prototype._req = function(method, path, params, cb) {
+    Stampery.prototype._req = function(method, path, params) {
       var options;
       options = {
         method: method,
-        url: this.host + "/" + path,
+        uri: this.host + "/" + path,
         headers: {
           'Authorization': this.auth,
           'Content-Type': 'application/json'
-        }
+        },
+        json: true
       };
       if (params) {
         options.json = params;
       }
-      return request(options, function(error, response, body) {
-        if (error) {
-          return cb(error, null);
-        } else if (response.statusCode >= 400) {
-          return cb({
-            code: response.statusCode,
-            message: response.statusMessage
-          }, null);
-        } else {
-          return cb(null, body.result);
-        }
+      return new Promise(function(resolve, reject) {
+        return request(options).then(function(res) {
+          return resolve(res.result);
+        })["catch"](function(err) {
+          return reject(err);
+        });
       });
     };
 
@@ -170,7 +142,6 @@
     /**
     * Function for proving a the receipts contained in a stamp
     * @param {Object} receipts - The 'receipts' object or the stamp itself
-    * @param {proveCallback} cb - Callback for handling the result
      */
 
     Stampery.prototype.prove = function(receipt) {
@@ -189,12 +160,6 @@
       }
       return false;
     };
-
-
-    /**
-    * @callback proveCallback
-    * @param {Boolean} res - Whether the longest receipt is valid or not
-     */
 
     Stampery.prototype._checkSiblings = function(hash, siblings, root) {
       var hashes, head, mix, tail;
