@@ -72,14 +72,24 @@ var stampery = new Stampery('14f1e553-325f-4549-ced6-6c5311b1a470');
 * Simple workflow for stamping a string.
 * This will return all the data related to the stamp plus an estimation of the
 * remaining time in seconds for the Ethereum and Bitcoin receipts to be ready
-* for proving. Average ETA is ~30 seconds for ETH and ~5 minutes for BTC.
+* for proving.
  */
-var h = stampery.hash('the piano has been drinking ' + Math.random());
-stampery.stamp(h, function(err, stamp) {
-  if (err) {
-    return console.error(err);
-  }
+const hash = stampery.hash('the piano has been drinking ' + Math.random());
+
+// Without WebHook
+stampery.stamp(hash).then((stamp) => {
   return console.log(stamp);
+}).catch((err) => {
+  return console.error(err);
+});
+
+// With WebHook
+const hook = "https://example.com/endpoint"
+
+stampery.stamp(hash, hook).then((stamp) => {
+  return console.log(stamp);
+}).catch((err) => {
+  return console.error(err);
 });
 ```
 
@@ -89,14 +99,10 @@ stampery.stamp(h, function(err, stamp) {
 * Example for retrieving the receipts for a certain stamp at any time
 * afterwards. It also verifies if the proof is valid and prints the result.
  */
-stampery.getById('5857d1629e7cba66c3ea20a8', function(err, res) {
-  if (err) {
-    return console.error(err);
-  }
-  console.log(res);
-  if (res) {
-    return console.log('Valid: ', stampery.prove(res.receipts));
-  }
+stampery.getById('5857d1629e7cba66c3ea20a8').then((stamp) => {
+   eturn console.log('Valid: ', stampery.prove(stamp.receipts));
+}).catch((err) => {
+  return console.error(err);
 });
 ```
 
@@ -106,11 +112,10 @@ stampery.getById('5857d1629e7cba66c3ea20a8', function(err, res) {
 * Example for retrieving all the stamps and receipts related to a certain file
 * hash at any time afterwards.
  */
-stampery.getByHash('<put here the file hash>', function(err, res) {
-  if (err) {
-    return console.error(err);
-  }
-  return console.log(res);
+stampery.getByHash('<put here the file hash>').then((stampsList) => {
+  return console.log(stampsList);
+}).catch((err) => {
+  return console.error(err);
 });
 ```
 
@@ -121,11 +126,10 @@ stampery.getByHash('<put here the file hash>', function(err, res) {
 * afterwards. For the sake of responsiveness, it will return only the last 50
 * stamps (page 0).
  */
-stampery.getAll(function(err, res) {
-  if (err) {
-    return console.error(err);
-  }
-  return console.log(res);
+stampery.getAll().then((stampsList) => {
+  return console.log(stampsList);
+}).catch((err) => {
+  return console.error(err);
 });
 ```
 ```javascript
@@ -134,11 +138,10 @@ stampery.getAll(function(err, res) {
 * Increase the first argument to get page 0, 1, 2, 3 and so on.
 * This example should return stamps numbers from 200 to 249.
  */
-stampery.getAll(4, function(err, res) {
-  if (err) {
-    return console.error(err);
-  }
-  return console.log(res);
+stampery.getAll(4).then((stampsList) => {
+  return console.log(stampsList);
+}).then((err) => {
+  return console.error(err);
 });
 ```
 
@@ -166,4 +169,4 @@ Ping us at [support@stampery.com](mailto:support@stampery.com) and we will be mo
 
 Code released under [the MIT license](https://github.com/stampery/node/blob/master/LICENSE).
 
-© 2015-2017 Stampery, Inc.
+© 2015-2018 Stampery, Inc.
